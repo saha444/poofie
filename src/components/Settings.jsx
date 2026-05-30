@@ -7,7 +7,8 @@ import {
   User, 
   Lock,
   Globe,
-  Bell
+  Bell,
+  Trash2
 } from 'lucide-react';
 
 export default function Settings() {
@@ -17,7 +18,8 @@ export default function Settings() {
     lowScoreRestricted, 
     simulateLowScoreRestriction,
     handleCompleteOnboarding,
-    addNotification
+    addNotification,
+    handleClearDatabase
   } = useApp();
 
   const [name, setName] = useState(userProfile?.name || '');
@@ -156,6 +158,28 @@ export default function Settings() {
                 {lowScoreRestricted ? 'Simulating Active' : 'Enable Simulation'}
               </button>
             </div>
+          </div>
+
+          {/* Section 4: Clear Database Danger Zone */}
+          <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#ef4444', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Trash2 size={16} />
+              Danger Zone: Reset Sandbox Database
+            </h3>
+            
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+              Wipe all local storage states including customized posts, reputation reviews, user profiles, daily streaks, and verification progress. Restores default system users immediately.
+            </p>
+
+            <button
+              type="button"
+              onClick={handleClearDatabase}
+              className="btn-danger"
+              style={{ alignSelf: 'start', display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', fontSize: '0.8rem' }}
+            >
+              <Trash2 size={14} />
+              Clear Local Database & Restart
+            </button>
           </div>
 
         </div>

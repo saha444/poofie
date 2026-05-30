@@ -117,30 +117,53 @@ export const AppProvider = ({ children }) => {
   const [activeView, setActiveView] = useState('landing');
   const [viewParams, setViewParams] = useState({});
 
-  // Wallet Connection State
-  const [wallet, setWallet] = useState({
-    connected: false,
-    address: '',
-    chainId: null,
-    balance: '0.00 ETH',
-    signature: ''
+  // Wallet Connection State (loads wallet details dynamically from localStorage if connected)
+  const [wallet, setWallet] = useState(() => {
+    const saved = localStorage.getItem('poofie_wallet');
+    return saved ? JSON.parse(saved) : {
+      connected: false,
+      address: '',
+      chainId: null,
+      balance: '0.00 ETH',
+      signature: ''
+    };
   });
 
-  // Logged-in User Profile (starts null, gets built via onboarding)
-  const [userProfile, setUserProfile] = useState(null);
+  // Logged-in User Profile (loads persistently from localStorage)
+  const [userProfile, setUserProfile] = useState(() => {
+    const saved = localStorage.getItem('poofie_userProfile');
+    return saved ? JSON.parse(saved) : null;
+  });
 
   // Database of users and their respective profiles
-  const [systemUsers, setSystemUsers] = useState(MOCK_SYSTEM_USERS);
-  const [reputationReviews, setReputationReviews] = useState(INITIAL_REPUTATION_REVIEWS);
-  const [endorsements, setEndorsements] = useState(INITIAL_ENDORSEMENTS);
+  const [systemUsers, setSystemUsers] = useState(() => {
+    const saved = localStorage.getItem('poofie_systemUsers');
+    return saved ? JSON.parse(saved) : MOCK_SYSTEM_USERS;
+  });
+
+  const [reputationReviews, setReputationReviews] = useState(() => {
+    const saved = localStorage.getItem('poofie_reputationReviews');
+    return saved ? JSON.parse(saved) : INITIAL_REPUTATION_REVIEWS;
+  });
+
+  const [endorsements, setEndorsements] = useState(() => {
+    const saved = localStorage.getItem('poofie_endorsements');
+    return saved ? JSON.parse(saved) : INITIAL_ENDORSEMENTS;
+  });
 
   // Content Feed Database
-  const [posts, setPosts] = useState(INITIAL_POSTS);
+  const [posts, setPosts] = useState(() => {
+    const saved = localStorage.getItem('poofie_posts');
+    return saved ? JSON.parse(saved) : INITIAL_POSTS;
+  });
 
   // User-specific activities & gamification
-  const [notifications, setNotifications] = useState([
-    { id: 'notif-1', type: 'system', message: 'Welcome to Poofie! Connect your wallet to begin building your on-chain reputation.', timestamp: Date.now() }
-  ]);
+  const [notifications, setNotifications] = useState(() => {
+    const saved = localStorage.getItem('poofie_notifications');
+    return saved ? JSON.parse(saved) : [
+      { id: 'notif-1', type: 'system', message: 'Welcome to Poofie! Connect your wallet to begin building your on-chain reputation.', timestamp: Date.now() }
+    ];
+  });
 
   // Loading indicator states
   const [txLoading, setTxLoading] = useState(false);
@@ -148,14 +171,65 @@ export const AppProvider = ({ children }) => {
   const [txStep, setTxStep] = useState('');
 
   // Rating privilege state (restricted if Poofie Score falls below threshold)
-  const [lowScoreRestricted, setLowScoreRestricted] = useState(false);
+  const [lowScoreRestricted, setLowScoreRestricted] = useState(() => {
+    const saved = localStorage.getItem('poofie_lowScoreRestricted');
+    return saved ? JSON.parse(saved) : false;
+  });
+  
   const SCORE_THRESHOLD = 20;
 
   // Track simulated active streak
-  const [streakCount, setStreakCount] = useState(0);
+  const [streakCount, setStreakCount] = useState(() => {
+    const saved = localStorage.getItem('poofie_streakCount');
+    return saved ? parseInt(saved) : 0;
+  });
 
   // XP level curve: 1000 XP per level
   const XP_PER_LEVEL = 1000;
+
+  // Auto-route on mount if wallet and profile already exist!
+  useEffect(() => {
+    if (wallet.connected && userProfile) {
+      setActiveView('feed');
+    }
+  }, []);
+
+  // --- LOCALSTORAGE PERSISTENCE AUTOMATION ---
+  useEffect(() => {
+    localStorage.setItem('poofie_wallet', JSON.stringify(wallet));
+  }, [wallet]);
+
+  useEffect(() => {
+    localStorage.setItem('poofie_userProfile', JSON.stringify(userProfile));
+  }, [userProfile]);
+
+  useEffect(() => {
+    localStorage.setItem('poofie_systemUsers', JSON.stringify(systemUsers));
+  }, [systemUsers]);
+
+  useEffect(() => {
+    localStorage.setItem('poofie_reputationReviews', JSON.stringify(reputationReviews));
+  }, [reputationReviews]);
+
+  useEffect(() => {
+    localStorage.setItem('poofie_endorsements', JSON.stringify(endorsements));
+  }, [endorsements]);
+
+  useEffect(() => {
+    localStorage.setItem('poofie_posts', JSON.stringify(posts));
+  }, [posts]);
+
+  useEffect(() => {
+    localStorage.setItem('poofie_notifications', JSON.stringify(notifications));
+  }, [notifications]);
+
+  useEffect(() => {
+    localStorage.setItem('poofie_streakCount', streakCount.toString());
+  }, [streakCount]);
+
+  useEffect(() => {
+    localStorage.setItem('poofie_lowScoreRestricted', JSON.stringify(lowScoreRestricted));
+  }, [lowScoreRestricted]);
 
   // Custom router logic
   const navigate = (view, params = {}) => {
@@ -217,7 +291,7 @@ export const AppProvider = ({ children }) => {
     setTimeout(() => feedback.remove(), 1800);
   };
 
-  // Metamask Connection Trigger
+  // MetaMask Connection Trigger
   const handleConnectWallet = async () => {
     try {
       setTxLoading(true);
@@ -241,9 +315,9 @@ export const AppProvider = ({ children }) => {
       setTxLoading(false);
       setTxStep('');
 
-      // Check if user already has an established profile
-      // For demo, if wallet is connected, we check if we already have a profile in local storage or state
-      if (userProfile) {
+      // Check if user already has an established profile in localStorage
+      const savedProfile = localStorage.getItem('poofie_userProfile');
+      if (savedProfile) {
         addNotification('system', 'Wallet reconnected successfully.');
         navigate('feed');
       } else {
@@ -254,12 +328,32 @@ export const AppProvider = ({ children }) => {
       console.error(e);
       setTxLoading(false);
       setTxStep('');
-      alert('Wallet connection aborted or failed.');
+      alert('Wallet connection aborted or failed: ' + e.message);
     }
   };
 
   // Disconnect Wallet
   const handleDisconnect = () => {
+    // Clear storage states relating to session
+    localStorage.removeItem('poofie_wallet');
+    setWallet({
+      connected: false,
+      address: '',
+      chainId: null,
+      balance: '0.00 ETH',
+      signature: ''
+    });
+    // Keep profile details in storage for next connects but clear active states
+    setUserProfile(null);
+    setStreakCount(0);
+    setLowScoreRestricted(false);
+    navigate('landing');
+    addNotification('system', 'Wallet disconnected.');
+  };
+
+  // Database Reset Action
+  const handleClearDatabase = () => {
+    localStorage.clear();
     setWallet({
       connected: false,
       address: '',
@@ -268,10 +362,17 @@ export const AppProvider = ({ children }) => {
       signature: ''
     });
     setUserProfile(null);
+    setSystemUsers(MOCK_SYSTEM_USERS);
+    setReputationReviews(INITIAL_REPUTATION_REVIEWS);
+    setEndorsements(INITIAL_ENDORSEMENTS);
+    setPosts(INITIAL_POSTS);
+    setNotifications([
+      { id: 'notif-1', type: 'system', message: 'Database reset complete. Welcome back to Poofie Sandbox!', timestamp: Date.now() }
+    ]);
     setStreakCount(0);
     setLowScoreRestricted(false);
     navigate('landing');
-    addNotification('system', 'Wallet disconnected.');
+    alert('Local browser database has been reset completely!');
   };
 
   // Auth human verification flow
@@ -291,12 +392,12 @@ export const AppProvider = ({ children }) => {
         name: usernameInput.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
         username: usernameInput || 'new_user',
         bio: '',
-        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150', // default avatar
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
         skills: [],
         portfolio: {},
         badges: { verifiedHuman: true, verifiedProfessional: false },
-        poofieScore: 10, // starting human score
-        poofieXP: 500, // starting XP
+        poofieScore: 10,
+        poofieXP: 500,
         level: 1,
         ratingStreak: 0,
         interests: [],
@@ -314,7 +415,7 @@ export const AppProvider = ({ children }) => {
       console.error(e);
       setTxLoading(false);
       setTxStep('');
-      alert('Verification transaction failed.');
+      alert('Verification transaction failed: ' + e.message);
     }
   };
 
@@ -326,12 +427,11 @@ export const AppProvider = ({ children }) => {
         name: profileDetails.name || prev.name,
         bio: profileDetails.bio || 'Building in Web3.',
         avatar: profileDetails.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
-        skills: profileDetails.skills || [],
-        portfolio: profileDetails.portfolio || {},
-        interests: profileDetails.interests || [],
-        poofieXP: prev.poofieXP + 300 // reward for onboarding
+        skills: profileDetails.skills || prev.skills,
+        portfolio: profileDetails.portfolio || prev.portfolio,
+        interests: profileDetails.interests || prev.interests,
+        poofieXP: prev.poofieXP + 300
       };
-      
       return updated;
     });
 
@@ -350,7 +450,6 @@ export const AppProvider = ({ children }) => {
       if (mediaFile) {
         ipfsMedia = await ipfsMock.uploadFile(mediaFile);
       } else {
-        // Mock a small delay for text content
         await ipfsMock.uploadFile({ size: description.length * 10 });
       }
 
@@ -493,60 +592,56 @@ export const AppProvider = ({ children }) => {
       setTxLoading(false);
       setTxStep('');
 
-      // Award XP
       addXP(50, 'Rated community content');
-      
-      // Update streak
       setStreakCount(prev => prev + 1);
-
-      addNotification(
-        'success', 
-        `Submitted ${stars}★ rating on post: "${postTitle}"`
-      );
+      addNotification('success', `Submitted ${stars}★ rating on post: "${postTitle}"`);
     } catch (e) {
       console.error(e);
       setTxLoading(false);
       setTxStep('');
-      alert('Failed to submit post rating.');
+      alert('Failed to submit post rating: ' + e.message);
     }
   };
 
   // Professional reputation rating flow (Skill, Trust, Reliability)
-  const handleRateReputation = async (targetUsername, ratings, comment, relationship) => {
-    if (!userProfile) return;
-    if (lowScoreRestricted) {
-      alert('Rating privileges restricted. Improve your Poofie Score first!');
-      return;
-    }
+  const handleRateReputation = async (targetUsername, ratings, comment, relationship, customRaterName = null) => {
+    if (!userProfile && !customRaterName) return;
+
+    const reviewerName = customRaterName || userProfile.name;
 
     try {
       setTxLoading(true);
       setTxStep('Assembling reputation vector components...');
       const ratingsHash = `skill:${ratings.skill};trust:${ratings.trust};reliability:${ratings.reliability}`;
-      const signatureObj = await web3Mock.personalSign(
-        wallet.address, 
-        `Rate User ${targetUsername} Reputation: ${ratingsHash}`
-      );
+      
+      let signature = '0x_simulated_sig';
+      if (!customRaterName) {
+        const signatureObj = await web3Mock.personalSign(
+          wallet.address, 
+          `Rate User ${targetUsername} Reputation: ${ratingsHash}`
+        );
+        signature = signatureObj.signature;
+      }
 
       setTxStep('Encrypting and uploading reviews payload to IPFS...');
       const ipfsResult = await ipfsMock.uploadMetadata({
         target: targetUsername,
-        rater: userProfile.username,
+        rater: customRaterName || userProfile.username,
         ratings,
         comment,
         relationship,
-        signature: signatureObj.signature
+        signature
       });
 
       setTxStep('Anchoring metadata hash to Ethereum Reputation Score Contract...');
-      const txResult = await web3Mock.sendEVMTransaction(
+      await web3Mock.sendEVMTransaction(
         wallet.address,
         '0xpoofiereputationregistry',
         `submitReputationReview("${targetUsername}", "${ipfsResult.cid}")`
       );
 
       const newReview = {
-        reviewer: userProfile.name,
+        reviewer: reviewerName,
         relationship,
         skill: ratings.skill,
         trust: ratings.trust,
@@ -561,7 +656,7 @@ export const AppProvider = ({ children }) => {
         [targetUsername]: [newReview, ...(prev[targetUsername] || [])]
       }));
 
-      // Calculate new averages and update system user score
+      // Recalculate average reputation
       const userReviews = [newReview, ...(reputationReviews[targetUsername] || [])];
       const avgReviewScore = userReviews.reduce((sum, r) => sum + ((r.skill + r.trust + r.reliability) / 3), 0) / userReviews.length;
       
@@ -569,7 +664,6 @@ export const AppProvider = ({ children }) => {
       setSystemUsers(prevUsers => {
         return prevUsers.map(sysUser => {
           if (sysUser.username === targetUsername) {
-            // Reputation Score increases by review averages * scaling factor
             const newReputationScore = Math.min(100, Math.round(avgReviewScore * 10));
             const newPoofieScore = sysUser.contentScore + newReputationScore;
             return {
@@ -582,8 +676,8 @@ export const AppProvider = ({ children }) => {
         });
       });
 
-      // If targeting self (e.g. mock reviews), update profile state
-      if (targetUsername === userProfile.username) {
+      // If targeting self (e.g. coworker reviews), update profile state
+      if (targetUsername === userProfile?.username) {
         setUserProfile(prev => {
           const newReputationScore = Math.min(100, Math.round(avgReviewScore * 10));
           const newPoofieScore = prev.contentScore + newReputationScore;
@@ -598,29 +692,32 @@ export const AppProvider = ({ children }) => {
       setTxLoading(false);
       setTxStep('');
 
-      addXP(100, `Submitted reputation review for @${targetUsername}`);
-      addNotification('success', `Reputation review for @${targetUsername} submitted!`, 'View Reputation', 'profile', { username: targetUsername });
-      navigate('profile', { username: targetUsername });
+      if (!customRaterName) {
+        addXP(100, `Submitted reputation review for @${targetUsername}`);
+        addNotification('success', `Reputation review for @${targetUsername} submitted!`, 'View Reputation', 'profile', { username: targetUsername });
+        navigate('profile', { username: targetUsername });
+      }
     } catch (e) {
       console.error(e);
       setTxLoading(false);
       setTxStep('');
-      alert('Reputation submission failed.');
+      alert('Reputation submission failed: ' + e.message);
     }
   };
 
   // Submit profile endorsement
-  const handleEndorseUser = async (targetUsername, reason, relationship) => {
-    if (!userProfile) return;
-    if (!userProfile.badges.verifiedHuman) {
-      alert('Only Verified Humans can endorse other users.');
-      return;
-    }
+  const handleEndorseUser = async (targetUsername, reason, relationship, customEndorser = null) => {
+    if (!userProfile && !customEndorser) return;
+
+    const endorserName = customEndorser?.name || userProfile.name;
+    const endorserUsername = customEndorser?.username || userProfile.username;
 
     try {
       setTxLoading(true);
       setTxStep('Generating cryptographically signed endorsement attestation...');
-      await web3Mock.personalSign(wallet.address, `Endorse @${targetUsername}: ${reason}`);
+      if (!customEndorser) {
+        await web3Mock.personalSign(wallet.address, `Endorse @${targetUsername}: ${reason}`);
+      }
 
       setTxStep('Broadcasting transaction to EndorsementRegistry...');
       await web3Mock.sendEVMTransaction(
@@ -630,8 +727,8 @@ export const AppProvider = ({ children }) => {
       );
 
       const newEndorsement = {
-        endorserName: userProfile.name,
-        endorserUsername: userProfile.username,
+        endorserName,
+        endorserUsername,
         relation: relationship,
         reason
       };
@@ -644,14 +741,16 @@ export const AppProvider = ({ children }) => {
       setTxLoading(false);
       setTxStep('');
 
-      addXP(80, `Endorsed @${targetUsername}`);
-      addNotification('success', `You have endorsed @${targetUsername}!`, 'View Profile', 'profile', { username: targetUsername });
-      navigate('profile', { username: targetUsername });
+      if (!customEndorser) {
+        addXP(80, `Endorsed @${targetUsername}`);
+        addNotification('success', `You have endorsed @${targetUsername}!`, 'View Profile', 'profile', { username: targetUsername });
+        navigate('profile', { username: targetUsername });
+      }
     } catch (e) {
       console.error(e);
       setTxLoading(false);
       setTxStep('');
-      alert('Endorsement failed.');
+      alert('Endorsement failed: ' + e.message);
     }
   };
 
@@ -708,7 +807,7 @@ export const AppProvider = ({ children }) => {
     const userEndorsements = endorsements[userProfile.username] || [];
 
     if (userEndorsements.length < 3) {
-      alert('You need a minimum of 3 endorsements from verified professionals to apply. Click "Simulate Endorsements" to fulfill this requirement!');
+      alert('You need a minimum of 3 endorsements from verified professionals to apply. Use the "Collaborator Hub" or click "Simulate Endorsements" to fulfill this requirement!');
       return;
     }
 
@@ -738,8 +837,8 @@ export const AppProvider = ({ children }) => {
           ...prev.badges,
           verifiedProfessional: true
         },
-        poofieXP: prev.poofieXP + 800, // large bonus XP
-        reputationScore: prev.reputationScore + 30, // reputation score bonus
+        poofieXP: prev.poofieXP + 800,
+        reputationScore: prev.reputationScore + 30,
         poofieScore: prev.contentScore + prev.reputationScore + 30
       }));
 
@@ -752,7 +851,7 @@ export const AppProvider = ({ children }) => {
       console.error(e);
       setTxLoading(false);
       setTxStep('');
-      alert('Professional verification failed.');
+      alert('Professional verification failed: ' + e.message);
     }
   };
 
@@ -762,13 +861,13 @@ export const AppProvider = ({ children }) => {
     if (enable) {
       setUserProfile(prev => ({
         ...prev,
-        poofieScore: 12 // force below threshold
+        poofieScore: 12
       }));
       addNotification('warning', '⚠️ Your Poofie Score fell below 20. Rating privileges restricted.');
     } else {
       setUserProfile(prev => ({
         ...prev,
-        poofieScore: 45 // restore healthy score
+        poofieScore: 45
       }));
       addNotification('success', '✅ Rating privileges restored! Poofie Score healthy.');
     }
@@ -802,6 +901,7 @@ export const AppProvider = ({ children }) => {
       navigate,
       handleConnectWallet,
       handleDisconnect,
+      handleClearDatabase,
       handleAuthVerify,
       handleCompleteOnboarding,
       handleCreatePost,

@@ -1,5 +1,6 @@
-// Web3 Mock Interface for Poofie
-// Simulates MetaMask wallet connection, gas transactions, personal sign, and ERC-721 badge minting
+// Web3 Browser Provider & Mock Interface for Poofie
+// Dynamically hooks into browser extension (MetaMask/window.ethereum) for real signatures & addresses
+// Falls back to high-fidelity simulated drivers if no browser extension is found
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -9,7 +10,7 @@ export const shortenAddress = (address) => {
   return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
 };
 
-// Generate random Ethereum address
+// Generate random Ethereum address (for mock fallback)
 export const generateRandomAddress = () => {
   const chars = '0123456789abcdef';
   let addr = '0x';
@@ -17,6 +18,28 @@ export const generateRandomAddress = () => {
     addr += chars[Math.floor(Math.random() * 16)];
   }
   return addr;
+};
+
+// Convert string to hex for personal_sign parameter safety
+const stringToHex = (str) => {
+  return '0x' + Array.from(new TextEncoder().encode(str))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+};
+
+// Map chain IDs to human readable network names
+const getNetworkName = (chainIdHex) => {
+  const chainId = parseInt(chainIdHex, 16);
+  switch (chainId) {
+    case 1: return 'Ethereum Mainnet';
+    case 11155111: return 'Sepolia Testnet';
+    case 17000: return 'Holesky Testnet';
+    case 137: return 'Polygon';
+    case 10: return 'Optimism';
+    case 42161: return 'Arbitrum One';
+    case 8453: return 'Base';
+    default: return `Custom EVM (ID: ${chainId})`;
+  }
 };
 
 // Seed initial system-verified professional profiles
@@ -92,43 +115,94 @@ export const MOCK_SYSTEM_USERS = [
 ];
 
 export const web3Mock = {
-  // Simulate checking if metamask is installed
+  // Check if browser has standard Web3 provider injected
   isMetaMaskInstalled: () => {
-    return true;
+    return typeof window !== 'undefined' && typeof window.ethereum !== 'undefined';
   },
 
-  // Simulate wallet connection
+  // Connect wallet - prompts MetaMask if present, else simulates it
   connectWallet: async () => {
-    await delay(1200); // realistic latency
-    const randomAddress = generateRandomAddress();
-    return {
-      address: randomAddress,
-      chainId: 1, // Ethereum Mainnet
-      network: 'Ethereum Mainnet',
-      balance: '1.485 ETH'
-    };
-  },
+    const hasProvider = typeof window !== 'undefined' && typeof window.ethereum !== 'undefined';
+    
+    if (hasProvider) {
+      // Trigger browser MetaMask prompt
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const address = accounts[0];
+      const chainIdHex = await window.ethereum.request({ method: 'eth_chainId' });
+      const network = getNetworkName(chainIdHex);
+      
+      // Fetch balance and format
+      let formattedBalance = '0.00 ETH';
+      try {
+        const balanceHex = await window.ethereum.request({ 
+          method: 'eth_getBalance', 
+          params: [address, 'latest'] 
+        });
+        const balanceDecimal = parseInt(balanceHex, 16);
+        formattedBalance = `${parseFloat(balanceDecimal / 1e18).toFixed(4)} ETH`;
+      } catch (e) {
+        console.error('Failed to query balance', e);
+      }
 
-  // Simulate signing a personal message to prove ownership
-  personalSign: async (address, message) => {
-    await delay(1500); // user "approving" in MetaMask
-    // Generate a mock signature
-    const chars = '0123456789abcdef';
-    let signature = '0x';
-    for (let i = 0; i < 130; i++) {
-      signature += chars[Math.floor(Math.random() * 16)];
+      return {
+        address,
+        chainId: parseInt(chainIdHex, 16),
+        network,
+        balance: formattedBalance
+      };
+    } else {
+      // Simulated fallback
+      await delay(1200);
+      const randomAddress = generateRandomAddress();
+      return {
+        address: randomAddress,
+        chainId: 1,
+        network: 'Ethereum Mainnet (Simulated)',
+        balance: '2.348 ETH'
+      };
     }
-    return {
-      message,
-      address,
-      signature,
-      timestamp: Date.now()
-    };
   },
 
-  // Simulate on-chain transaction execution for rating, posting, or verifying
+  // Cryptographic Personal Signing - prompts MetaMask if present, else simulates
+  personalSign: async (address, message) => {
+    const hasProvider = typeof window !== 'undefined' && typeof window.ethereum !== 'undefined';
+
+    if (hasProvider) {
+      // Hex-encode the signing message for standards compliance
+      const hexMsg = stringToHex(message);
+      const signature = await window.ethereum.request({
+        method: 'personal_sign',
+        params: [hexMsg, address]
+      });
+
+      return {
+        message,
+        address,
+        signature,
+        timestamp: Date.now()
+      };
+    } else {
+      // Simulated signature
+      await delay(1500);
+      const chars = '0123456789abcdef';
+      let signature = '0x';
+      for (let i = 0; i < 130; i++) {
+        signature += chars[Math.floor(Math.random() * 16)];
+      }
+      return {
+        message,
+        address,
+        signature,
+        timestamp: Date.now()
+      };
+    }
+  },
+
+  // Transaction simulation
   sendEVMTransaction: async (fromAddress, contractAddress, data) => {
-    await delay(2000); // block mining time simulator
+    // If provider is present, we could trigger a real transaction, but since this operates locally 
+    // without live testnet deployments, we simulate block confirmations (saving user gas costs)
+    await delay(1800);
     const chars = '0123456789abcdef';
     let txHash = '0x';
     for (let i = 0; i < 64; i++) {
@@ -142,9 +216,9 @@ export const web3Mock = {
     };
   },
 
-  // Simulate smart contract minting of Verification NFTs
+  // Mint verification badges NFTs
   mintVerificationBadge: async (userAddress, badgeType) => {
-    await delay(2200); // minting delay
+    await delay(2000);
     const chars = '0123456789abcdef';
     let nftTokenId = '';
     for (let i = 0; i < 8; i++) {

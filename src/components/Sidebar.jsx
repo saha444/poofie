@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Star
 } from 'lucide-react';
+import CollaboratorHub from './CollaboratorHub';
 
 export default function Sidebar() {
   const { 
@@ -235,6 +236,9 @@ export default function Sidebar() {
           Voting and rating features are locked. Publish high-quality work to recover your score.
         </div>
       )}
+
+      {/* Interactive Peer Switcher Sandbox */}
+      <CollaboratorHub />
     </aside>
   );
 }
