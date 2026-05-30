@@ -19,6 +19,39 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
+    async signIn({ user, account }) {
+      if (account?.provider === 'github' && user.email) {
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email },
+          include: { accounts: true }
+        })
+
+        if (existingUser) {
+          const hasGithubAccount = existingUser.accounts.some(
+            acc => acc.provider === 'github'
+          )
+          
+          if (!hasGithubAccount) {
+            await prisma.account.create({
+              data: {
+                userId: existingUser.id,
+                type: account.type,
+                provider: account.provider,
+                providerAccountId: account.providerAccountId,
+                access_token: account.access_token,
+                refresh_token: account.refresh_token,
+                expires_at: account.expires_at,
+                token_type: account.token_type,
+                scope: account.scope,
+                id_token: account.id_token,
+                session_state: account.session_state,
+              }
+            })
+          }
+        }
+      }
+      return true
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
