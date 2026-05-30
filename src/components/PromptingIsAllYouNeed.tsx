@@ -203,10 +203,14 @@ export function PromptingIsAllYouNeed() {
         )
       }
 
-      const totalWidthLarge = calculateWordWidth(words[0], LARGE_PIXEL_SIZE)
-      const totalWidthSmall = words[1].split(" ").reduce((width, word, index) => {
-        return width + calculateWordWidth(word, SMALL_PIXEL_SIZE) + (index > 0 ? WORD_SPACING * SMALL_PIXEL_SIZE : 0)
-      }, 0)
+      const calculateSentenceWidth = (sentence: string, pixelSize: number) => {
+        return sentence.split(" ").reduce((width, w, index) => {
+          return width + calculateWordWidth(w, pixelSize) + (index > 0 ? WORD_SPACING * pixelSize : 0)
+        }, 0)
+      }
+
+      const totalWidthLarge = calculateSentenceWidth(words[0], LARGE_PIXEL_SIZE)
+      const totalWidthSmall = calculateSentenceWidth(words[1], SMALL_PIXEL_SIZE)
       const totalWidth = Math.max(totalWidthLarge, totalWidthSmall)
       const scaleFactor = (canvas.width * 0.8) / totalWidth
 
@@ -222,40 +226,12 @@ export function PromptingIsAllYouNeed() {
 
       words.forEach((word, wordIndex) => {
         const pixelSize = wordIndex === 0 ? adjustedLargePixelSize : adjustedSmallPixelSize
-        const totalWidth =
-          wordIndex === 0
-            ? calculateWordWidth(word, adjustedLargePixelSize)
-            : words[1].split(" ").reduce((width, w, index) => {
-                return (
-                  width +
-                  calculateWordWidth(w, adjustedSmallPixelSize) +
-                  (index > 0 ? WORD_SPACING * adjustedSmallPixelSize : 0)
-                )
-              }, 0)
+        const totalWidth = calculateSentenceWidth(word, pixelSize)
 
         let startX = (canvas.width - totalWidth) / 2
 
-        if (wordIndex === 1) {
-          word.split(" ").forEach((subWord) => {
-            subWord.split("").forEach((letter) => {
-              const pixelMap = PIXEL_MAP[letter as keyof typeof PIXEL_MAP]
-              if (!pixelMap) return
-
-              for (let i = 0; i < pixelMap.length; i++) {
-                for (let j = 0; j < pixelMap[i].length; j++) {
-                  if (pixelMap[i][j]) {
-                    const x = startX + j * pixelSize
-                    const y = startY + i * pixelSize
-                    pixelsRef.current.push({ x, y, size: pixelSize, hit: false })
-                  }
-                }
-              }
-              startX += (pixelMap[0].length + LETTER_SPACING) * pixelSize
-            })
-            startX += WORD_SPACING * adjustedSmallPixelSize
-          })
-        } else {
-          word.split("").forEach((letter) => {
+        word.split(" ").forEach((subWord) => {
+          subWord.split("").forEach((letter) => {
             const pixelMap = PIXEL_MAP[letter as keyof typeof PIXEL_MAP]
             if (!pixelMap) return
 
@@ -270,7 +246,8 @@ export function PromptingIsAllYouNeed() {
             }
             startX += (pixelMap[0].length + LETTER_SPACING) * pixelSize
           })
-        }
+          startX += WORD_SPACING * pixelSize
+        })
         startY += wordIndex === 0 ? largeTextHeight + spaceBetweenLines : 0
       })
 
@@ -332,35 +309,55 @@ export function PromptingIsAllYouNeed() {
       ball.x += ball.dx
       ball.y += ball.dy
 
-      if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
+      // Wall boundary collisions
+      if (ball.y - ball.radius < 0 && ball.dy < 0) {
+        ball.dy = -ball.dy
+      } else if (ball.y + ball.radius > canvas.height && ball.dy > 0) {
         ball.dy = -ball.dy
       }
-      if (ball.x - ball.radius < 0 || ball.x + ball.radius > canvas.width) {
+
+      if (ball.x - ball.radius < 0 && ball.dx < 0) {
+        ball.dx = -ball.dx
+      } else if (ball.x + ball.radius > canvas.width && ball.dx > 0) {
         ball.dx = -ball.dx
       }
 
-      paddles.forEach((paddle) => {
+      // Paddle collisions (Directionally locked to prevent trapping)
+      paddles.forEach((paddle, index) => {
         if (paddle.isVertical) {
-          if (
+          const isLeftPaddle = index === 0
+          const isOverlap = 
             ball.x - ball.radius < paddle.x + paddle.width &&
             ball.x + ball.radius > paddle.x &&
             ball.y > paddle.y &&
             ball.y < paddle.y + paddle.height
-          ) {
-            ball.dx = -ball.dx
+
+          if (isOverlap) {
+            if (isLeftPaddle && ball.dx < 0) {
+              ball.dx = -ball.dx
+            } else if (!isLeftPaddle && ball.dx > 0) {
+              ball.dx = -ball.dx
+            }
           }
         } else {
-          if (
+          const isTopPaddle = index === 2
+          const isOverlap =
             ball.y - ball.radius < paddle.y + paddle.height &&
             ball.y + ball.radius > paddle.y &&
             ball.x > paddle.x &&
             ball.x < paddle.x + paddle.width
-          ) {
-            ball.dy = -ball.dy
+
+          if (isOverlap) {
+            if (isTopPaddle && ball.dy < 0) {
+              ball.dy = -ball.dy
+            } else if (!isTopPaddle && ball.dy > 0) {
+              ball.dy = -ball.dy
+            }
           }
         }
       })
 
+      // Update AI paddle target movement
       paddles.forEach((paddle) => {
         if (paddle.isVertical) {
           paddle.targetY = ball.y - paddle.height / 2
@@ -373,30 +370,44 @@ export function PromptingIsAllYouNeed() {
         }
       })
 
+      // Find the single closest overlapping pixel block to prevent trapped feedback loops
+      let closestPixel: Pixel | null = null
+      let minDistance = Infinity
+
       pixelsRef.current.forEach((pixel) => {
-        if (
-          ball.x + ball.radius > pixel.x &&
-          ball.x - ball.radius < pixel.x + pixel.size &&
-          ball.y + ball.radius > pixel.y &&
-          ball.y - ball.radius < pixel.y + pixel.size
-        ) {
+        const overlapX = ball.x + ball.radius > pixel.x && ball.x - ball.radius < pixel.x + pixel.size
+        const overlapY = ball.y + ball.radius > pixel.y && ball.y - ball.radius < pixel.y + pixel.size
+
+        if (overlapX && overlapY) {
           const centerX = pixel.x + pixel.size / 2
           const centerY = pixel.y + pixel.size / 2
-
-          // Physics safety direction check to prevent double collisions inside the same pixel
-          const isMovingTowardsX = (ball.x < centerX && ball.dx > 0) || (ball.x > centerX && ball.dx < 0)
-          const isMovingTowardsY = (ball.y < centerY && ball.dy > 0) || (ball.y > centerY && ball.dy < 0)
-
-          if (isMovingTowardsX || isMovingTowardsY) {
-            pixel.hit = !pixel.hit // Toggle state: shifts from grey to white and vice versa!
-            if (Math.abs(ball.x - centerX) > Math.abs(ball.y - centerY)) {
-              ball.dx = -ball.dx
-            } else {
-              ball.dy = -ball.dy
-            }
+          const dist = Math.sqrt((ball.x - centerX) ** 2 + (ball.y - centerY) ** 2)
+          if (dist < minDistance) {
+            minDistance = dist
+            closestPixel = pixel
           }
         }
       })
+
+      // Resolve collision only for the single closest overlapping pixel block per frame
+      if (closestPixel) {
+        const pixel: Pixel = closestPixel
+        const centerX = pixel.x + pixel.size / 2
+        const centerY = pixel.y + pixel.size / 2
+
+        // Direction safety checks to verify ball is moving towards the block
+        const isMovingTowardsX = (ball.x < centerX && ball.dx > 0) || (ball.x > centerX && ball.dx < 0)
+        const isMovingTowardsY = (ball.y < centerY && ball.dy > 0) || (ball.y > centerY && ball.dy < 0)
+
+        if (isMovingTowardsX || isMovingTowardsY) {
+          pixel.hit = !pixel.hit // Toggle state
+          if (Math.abs(ball.x - centerX) > Math.abs(ball.y - centerY)) {
+            ball.dx = -ball.dx
+          } else {
+            ball.dy = -ball.dy
+          }
+        }
+      }
     }
 
     const drawGame = () => {
