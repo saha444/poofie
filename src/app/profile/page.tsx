@@ -154,15 +154,6 @@ export default function ProfilePage() {
                 </p>
               </div>
             </div>
-
-            {/* Verification Index Rating */}
-            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-light)', borderRadius: '12px', padding: '16px 24px', textAlign: 'right' }}>
-              <span style={{ fontSize: '0.65rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Verification Score</span>
-              <strong style={{ fontSize: '1.8rem', color: 'var(--accent-cyan)', display: 'block', marginTop: '4px' }}>
-                {userProfile?.githubRepos ? 85 + Math.min(15, userProfile.githubRepos) : 85}%
-              </strong>
-              <span style={{ fontSize: '0.62rem', color: '#10b981' }}>✓ 100% On-Chain Proofs</span>
-            </div>
           </div>
 
           <div style={{ marginTop: '28px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', padding: '20px', borderRadius: '12px' }}>
@@ -298,8 +289,66 @@ export default function ProfilePage() {
                   </div>
                 )}
               </div>
-
             </div>
+
+            {/* Telemetry Metrics Grid Section */}
+            <div style={{ width: '100%', marginTop: '32px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '24px' }}>
+              <h3 style={{ fontSize: '0.9rem', fontWeight: 800, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-cyan)' }}>
+                <Sparkles size={16} /> Attestation Source Telemetry Mappings
+              </h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', width: '100%' }}>
+                {dimensions.map(dim => {
+                  const score = radarData[dim]?.score || 45
+                  const justification = radarData[dim]?.justification || 'Verified profile metrics'
+                  const color = DNA_COLORS[dim] || 'var(--accent-cyan)'
+                  
+                  // Mapped platforms helper
+                  const platforms: Record<string, string[]> = {
+                    Maker: ['GitHub', 'Devfolio', 'Quiz'],
+                    Architect: ['GitHub', 'LinkedIn', 'Quiz'],
+                    Explorer: ['GitHub', 'Quiz'],
+                    Scholar: ['LeetCode', 'LinkedIn', 'Quiz'],
+                    Strategist: ['LinkedIn', 'LeetCode', 'Quiz'],
+                    Alchemist: ['Integrations', 'Quiz'],
+                    Catalyst: ['GitHub', 'Quiz'],
+                    Craftsman: ['LinkedIn', 'GitHub', 'Quiz']
+                  }
+                  
+                  const sources = platforms[dim] || ['Quiz']
+
+                  return (
+                    <div key={dim} style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', borderRadius: '10px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', transition: 'border-color 0.2s' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: color }} />
+                          <strong style={{ fontSize: '0.82rem', fontWeight: 700 }}>{dim}</strong>
+                        </div>
+                        <span style={{ fontSize: '0.82rem', fontWeight: 800, color }}>{score}%</span>
+                      </div>
+                      
+                      {/* Bar indicator */}
+                      <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.04)', borderRadius: '2px', overflow: 'hidden' }}>
+                        <div style={{ width: `${score}%`, height: '100%', background: color }} />
+                      </div>
+
+                      <p style={{ fontSize: '0.74rem', color: 'var(--text-dim)', lineHeight: '1.4', margin: '4px 0 0 0' }}>
+                        {justification}
+                      </p>
+
+                      {/* Source Pills */}
+                      <div style={{ display: 'flex', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
+                        {sources.map(src => (
+                          <span key={src} style={{ fontSize: '0.62rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-dim)', padding: '2px 6px', borderRadius: '4px', fontFamily: 'monospace' }}>
+                            {src}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
           </div>
 
           {/* Right Column: Tech Stack & Domains Showcase */}
