@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { shortenAddress } from '../utils/web3Mock';
 import { 
   Bell, 
   Search, 
@@ -12,7 +11,8 @@ import {
   CheckCircle, 
   Award, 
   AlertTriangle,
-  Trash2
+  Trash2,
+  Sparkles
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -23,8 +23,6 @@ export default function Navbar() {
     handleConnectWallet, 
     handleDisconnect, 
     navigate,
-    isSepoliaNetwork,
-    handleSwitchNetwork,
     handleClearDatabase
   } = useApp();
   
@@ -41,15 +39,15 @@ export default function Navbar() {
   const getNotifIcon = (type) => {
     switch (type) {
       case 'success':
-        return <CheckCircle size={16} className="text-green-400" style={{ color: '#10b981' }} />;
+        return <CheckCircle size={16} style={{ color: '#10b981' }} />;
       case 'warning':
-        return <AlertTriangle size={16} className="text-red-400" style={{ color: '#ef4444' }} />;
+        return <AlertTriangle size={16} style={{ color: '#ef4444' }} />;
       case 'milestone':
-        return <Award size={16} className="text-yellow-400" style={{ color: '#f59e0b' }} />;
+        return <Award size={16} style={{ color: '#f59e0b' }} />;
       case 'xp':
-        return <Layers size={16} className="text-cyan-400" style={{ color: '#00f2fe' }} />;
+        return <Layers size={16} style={{ color: '#00f2fe' }} />;
       default:
-        return <Bell size={16} className="text-gray-400" />;
+        return <Bell size={16} style={{ color: 'var(--text-muted)' }} />;
     }
   };
 
@@ -70,7 +68,7 @@ export default function Navbar() {
     }}>
       {/* Logo */}
       <div 
-        onClick={() => navigate(wallet.connected ? 'feed' : 'landing')} 
+        onClick={() => navigate(wallet.connected && userProfile ? 'feed' : 'landing')} 
         style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
       >
         <div style={{
@@ -87,7 +85,7 @@ export default function Navbar() {
         </div>
         <div>
           <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.4rem', background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>POOFIE</span>
-          <span style={{ fontSize: '0.65rem', color: 'var(--text-dim)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '-4px' }}>Decentralized Identity</span>
+          <span style={{ fontSize: '0.65rem', color: 'var(--text-dim)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '-4px' }}>AI Developer DNA</span>
         </div>
       </div>
 
@@ -95,7 +93,7 @@ export default function Navbar() {
       <div style={{ flex: 1, maxWidth: '400px', position: 'relative' }}>
         <input 
           type="text" 
-          placeholder="Search skills, professions, users..."
+          placeholder="Search by DNA, specializations, skills..."
           onClick={() => navigate('explore')}
           style={{
             width: '100%',
@@ -109,12 +107,12 @@ export default function Navbar() {
             cursor: 'pointer'
           }}
         />
-        <Search size={16} className="text-gray-400" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+        <Search size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
       </div>
 
       {/* Action Buttons / User Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        {wallet.connected ? (
+        {wallet.connected && userProfile ? (
           <>
             {/* Notifications Hub */}
             <div style={{ position: 'relative' }}>
@@ -173,12 +171,6 @@ export default function Navbar() {
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid var(--border-light)', paddingBottom: '8px' }}>
                     <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Notifications</span>
-                    <span 
-                      onClick={() => navigate('notifications')} 
-                      style={{ fontSize: '0.75rem', color: 'var(--accent-cyan)', cursor: 'pointer' }}
-                    >
-                      View All
-                    </span>
                   </div>
 
                   {notifications.length === 0 ? (
@@ -217,66 +209,23 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Sepolia Network Badge / Switch CTA */}
-            {wallet.connected && (
-              isSepoliaNetwork ? (
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  background: 'rgba(155, 81, 224, 0.1)',
-                  border: '1px solid rgba(155, 81, 224, 0.2)',
-                  borderRadius: '24px',
-                  padding: '4px 12px',
-                  gap: '6px',
-                  fontSize: '0.75rem',
-                  color: 'var(--accent-purple)',
-                  fontWeight: 600
-                }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-purple)', boxShadow: '0 0 6px var(--accent-purple)' }}></span>
-                  <span>Sepolia Testnet</span>
-                </div>
-              ) : (
-                <button
-                  onClick={handleSwitchNetwork}
-                  style={{
-                    padding: '4px 12px',
-                    fontSize: '0.75rem',
-                    background: 'linear-gradient(90deg, #f59e0b 0%, #ef4444 100%)',
-                    color: '#000',
-                    border: 'none',
-                    borderRadius: '24px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    fontWeight: 700,
-                    boxShadow: '0 0 10px rgba(245, 158, 11, 0.3)'
-                  }}
-                  title="Poofie is deployed on Sepolia. Click to switch networks automatically."
-                >
-                  <AlertTriangle size={12} />
-                  Switch to Sepolia
-                </button>
-              )
-            )}
-
-            {/* Wallet Address Display */}
+            {/* Connection status display */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              background: 'rgba(0, 0, 0, 0.3)',
-              border: '1px solid var(--border-light)',
+              background: 'rgba(0, 242, 254, 0.05)',
+              border: '1px solid var(--border-glow)',
               borderRadius: '24px',
-              padding: '4px 12px',
+              padding: '6px 14px',
               gap: '8px',
-              fontSize: '0.8rem'
+              fontSize: '0.75rem',
+              color: 'var(--accent-cyan)'
             }}>
-              <Wallet size={14} className="text-cyan-400" style={{ color: 'var(--accent-cyan)' }} />
-              <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{shortenAddress(wallet.address)}</span>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px #10b981' }}></span>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-cyan)', boxShadow: '0 0 6px var(--accent-cyan)' }}></span>
+              <span>Identity Network Live</span>
             </div>
 
-            {/* Profile Avatar / Quick Nav */}
+            {/* Profile Avatar */}
             {userProfile && (
               <div 
                 onClick={() => navigate('profile', { username: userProfile.username })}
@@ -308,7 +257,7 @@ export default function Navbar() {
                 cursor: 'pointer',
                 transition: 'var(--transition-smooth)',
                 padding: '4px',
-                marginRight: '8px'
+                marginLeft: '4px'
               }}
               title="Reset Sandbox Database (Wipe Local Storage)"
             >

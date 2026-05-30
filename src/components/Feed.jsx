@@ -1,413 +1,502 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { shortenAddress } from '../utils/web3Mock';
 import { 
-  Star, 
-  Heart, 
-  MessageSquare, 
+  Users, 
+  Trophy, 
+  Send, 
   Share2, 
-  Link as LinkIcon, 
-  GitFork, 
-  FileText, 
+  Code, 
+  Briefcase,
   Layers, 
+  Sparkles,
+  GitFork,
+  ArrowRight,
+  MessageSquare,
+  Bookmark,
   CheckCircle,
-  Award,
-  AlertTriangle
+  Plus
 } from 'lucide-react';
 
 export default function Feed() {
   const { 
     posts, 
     userProfile, 
-    lowScoreRestricted,
-    handleRateContent, 
     navigate,
-    systemUsers
+    handleCreatePost,
+    handleApplyToOpportunity,
+    addNotification
   } = useApp();
 
-  const [activeFilter, setActiveFilter] = useState('trending');
+  const [activeFilter, setActiveFilter] = useState('All');
   
-  // Rate drawer controls per post
-  const [ratingInput, setRatingInput] = useState({}); // { [postId]: { stars: 5, comment: '' } }
+  // Create Post Drawer Form State
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [newDesc, setNewDesc] = useState('');
+  const [newTags, setNewTags] = useState('');
+  const [newType, setNewType] = useState('Project Showcase');
+  const [roleInput, setRoleInput] = useState('');
+  const [projInput, setProjInput] = useState('');
+  const [xpInput, setXpInput] = useState(200);
 
-  const handleStarSelect = (postId, value) => {
-    setRatingInput(prev => ({
-      ...prev,
-      [postId]: {
-        ...(prev[postId] || { comment: '' }),
-        stars: value
-      }
-    }));
-  };
-
-  const handleCommentChange = (postId, text) => {
-    setRatingInput(prev => ({
-      ...prev,
-      [postId]: {
-        ...(prev[postId] || { stars: 5 }),
-        comment: text
-      }
-    }));
-  };
-
-  const submitRatingClick = async (postId) => {
-    const input = ratingInput[postId] || { stars: 5, comment: '' };
-    await handleRateContent(postId, input.stars, input.comment);
-    // Reset input
-    setRatingInput(prev => {
-      const copy = { ...prev };
-      delete copy[postId];
-      return copy;
-    });
-  };
-
-  const handleShare = (postId) => {
-    navigator.clipboard.writeText(`${window.location.origin}/post/${postId}`);
-    alert('Mock sharing URL copied to clipboard!');
-  };
-
-  // Filter posts
-  const filteredPosts = [...posts].sort((a, b) => {
-    if (activeFilter === 'latest') {
-      return b.timestamp - a.timestamp;
-    } else if (activeFilter === 'highest-rated') {
-      return b.starsCount - a.starsCount;
-    } else {
-      // trending: combination of likes + starsCount + date
-      return (b.likes + b.starsCount * 5) - (a.likes + a.starsCount * 5);
-    }
+  // Clan Chat State
+  const [selectedClanChat, setSelectedClanChat] = useState('');
+  const [chatMessageInput, setChatMessageInput] = useState('');
+  const [clanDiscussions, setClanDiscussions] = useState({
+    'AI Builders': [
+      { sender: 'alice_v', name: 'Alice Vance', msg: 'Has anyone benchmarked the new LLM reasoning speeds? The latency spikes are massive.', time: '10m ago' },
+      { sender: 'devon_c', name: 'Devon Carter', msg: 'We adjusted our recursive search weights and saved 300ms in agent loops. Open to sharing our config!', time: '5m ago' }
+    ],
+    'Frontend Guild': [
+      { sender: 'marcus_design', name: 'Marcus K.', msg: 'Working on a translucent overlay for our leagues card. Glassmorphic styles look super slick in dark mode.', time: '1h ago' }
+    ],
+    'Research Circle': [
+      { sender: 'elena_dev', name: 'Elena Rostova', msg: 'Just published the Semaphore credential circuits on crates.io! Check it out.', time: '2h ago' }
+    ],
+    'Hackathon Warriors': [
+      { sender: 'devon_c', name: 'Devon Carter', msg: 'Hack4Bengal registrations closing soon. Who needs a Strategist or Catalyst to pitch?', time: '4h ago' }
+    ]
   });
 
-  return (
-    <div className="animate-slide-up" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '24px' }}>
+  // Filter posts
+  const filteredPosts = posts.filter(post => {
+    if (activeFilter === 'All') return true;
+    return post.type === activeFilter;
+  });
+
+  // Handle new post submit
+  const handlePublishPost = (e) => {
+    e.preventDefault();
+    if (!newTitle || !newDesc) return alert('Please enter a title and description.');
+    
+    const tagsArr = newTags.split(',').map(t => t.trim()).filter(Boolean);
+    
+    let oppDetails = null;
+    if (newType !== 'Project Showcase' && newType !== 'League Launch') {
+      oppDetails = {
+        role: roleInput || 'General Collaborator',
+        location: 'Remote',
+        project: projInput || 'Hobby Dapp',
+        xpReward: parseInt(xpInput) || 200
+      };
+    }
+
+    handleCreatePost(newTitle, newDesc, tagsArr, newType, oppDetails);
+
+    // Reset Form
+    setNewTitle('');
+    setNewDesc('');
+    setNewTags('');
+    setNewType('Project Showcase');
+    setRoleInput('');
+    setProjInput('');
+    setShowCreateForm(false);
+  };
+
+  // Submit clan chat message
+  const handleSendClanChat = (e) => {
+    e.preventDefault();
+    if (!chatMessageInput.trim() || !selectedClanChat) return;
+
+    const newMsg = {
+      sender: userProfile?.username || 'satoshi',
+      name: userProfile?.name || 'Satoshi Nakamoto',
+      msg: chatMessageInput.trim(),
+      time: 'Just now'
+    };
+
+    setClanDiscussions(prev => ({
+      ...prev,
+      [selectedClanChat]: [...(prev[selectedClanChat] || []), newMsg]
+    }));
+
+    setChatMessageInput('');
+
+    // Trigger simulated mentor reply after a brief delay!
+    setTimeout(() => {
+      let botResponse = "That sounds awesome! Let me know if you need any architectural blueprints.";
+      if (selectedClanChat === 'AI Builders') {
+        botResponse = "Agent routing is super optimized in standard PyTorch pipelines. Try mapping the state tree!";
+      } else if (selectedClanChat === 'Frontend Guild') {
+        botResponse = "Make sure the responsive layout uses flexible grids instead of fixed sizes!";
+      }
       
-      {/* Posts Section */}
+      const botMsg = {
+        sender: 'alice_v',
+        name: 'Alice Vance (Mentor 🎓)',
+        msg: botResponse,
+        time: 'Just now'
+      };
+
+      setClanDiscussions(prev => ({
+        ...prev,
+        [selectedClanChat]: [...(prev[selectedClanChat] || []), botMsg]
+      }));
+      addNotification('success', `💬 New mentor advice received in ${selectedClanChat} clan!`);
+    }, 2000);
+  };
+
+  const handleSharePost = (title) => {
+    navigator.clipboard.writeText(`${window.location.origin}/opportunity/${title.replace(/\s+/g, '-').toLowerCase()}`);
+    alert(`Link to "${title}" copied to clipboard!`);
+  };
+
+  // Set default clan chat on mount if they have joined any
+  React.useEffect(() => {
+    if (userProfile?.clan && !selectedClanChat) {
+      setSelectedClanChat(userProfile.clan);
+    }
+  }, [userProfile]);
+
+  return (
+    <div className="animate-slide-up" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px' }}>
+      
+      {/* LEFT COLUMN: Opportunity Network Feed */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         
-        {/* Navigation Filters */}
-        <div className="glass-panel" style={{ padding: '12px 24px', display: 'flex', justifyContent: 'between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            {['trending', 'latest', 'highest-rated'].map((filter) => (
+        {/* Navigation & Publisher bar */}
+        <div className="glass-panel" style={{ padding: '16px 24px', display: 'flex', justifyContent: 'between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            {['All', 'Teammate Request', 'Collaborator Request', 'Project Showcase', 'League Launch'].map((filter) => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
                 className={`tab-btn ${activeFilter === filter ? 'active' : ''}`}
-                style={{ fontSize: '0.85rem', textTransform: 'capitalize', padding: '8px 12px' }}
+                style={{ fontSize: '0.8rem', padding: '6px 12px', whiteSpace: 'nowrap' }}
               >
-                {filter.replace('-', ' ')}
+                {filter === 'All' ? 'Opportunity Feed' : filter}
               </button>
             ))}
           </div>
+
           <button 
-            onClick={() => navigate('create')} 
-            className="btn-primary" 
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            className="btn-primary"
             style={{ padding: '8px 16px', fontSize: '0.8rem' }}
           >
-            Create On-Chain Post
+            <Plus size={16} />
+            Post Opportunity
           </button>
         </div>
 
-        {/* Dynamic warning if low-score restriction is active */}
-        {lowScoreRestricted && (
-          <div className="restriction-banner">
-            <AlertTriangle size={20} />
-            <div>
-              <strong style={{ display: 'block', fontSize: '0.85rem' }}>Rating Privileges Restricted</strong>
-              <span style={{ fontSize: '0.75rem' }}>Your Poofie Score is below 20. Build reputation or publish appreciated work to regain access.</span>
+        {/* Create Post Form Card */}
+        {showCreateForm && (
+          <form onSubmit={handlePublishPost} className="glass-panel animate-slide-up" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h3 style={{ fontSize: '1.1rem', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Sparkles size={16} style={{ color: 'var(--accent-cyan)' }} />
+              Broadcast Developer Opportunity
+            </h3>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '0.7rem', color: 'var(--text-dim)', display: 'block', marginBottom: '6px' }}>LISTING TITLE</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. Looking for Backend Dev for AI Agents 🚀" 
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  className="input-field"
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.7rem', color: 'var(--text-dim)', display: 'block', marginBottom: '6px' }}>LISTING TYPE</label>
+                <select 
+                  value={newType} 
+                  onChange={(e) => setNewType(e.target.value)}
+                  className="input-field"
+                  style={{ background: '#0a0a0f', height: '42px', border: '1px solid var(--border-light)', borderRadius: '8px', color: 'var(--text-main)' }}
+                >
+                  <option value="Project Showcase">Project Showcase</option>
+                  <option value="Teammate Request">Teammate Request</option>
+                  <option value="Collaborator Request">Collaborator Request</option>
+                </select>
+              </div>
             </div>
-          </div>
+
+            <div>
+              <label style={{ fontSize: '0.7rem', color: 'var(--text-dim)', display: 'block', marginBottom: '6px' }}>DESCRIPTION</label>
+              <textarea 
+                placeholder="Explain the project roadmap, learning goals, or teammate requirements..." 
+                value={newDesc}
+                onChange={(e) => setNewDesc(e.target.value)}
+                className="input-field"
+                style={{ height: '80px', resize: 'none' }}
+                required
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '0.7rem', color: 'var(--text-dim)', display: 'block', marginBottom: '6px' }}>TECH STACK TAGS (COMMA SEPARATED)</label>
+                <input 
+                  type="text" 
+                  placeholder="React, PyTorch, Node.js" 
+                  value={newTags}
+                  onChange={(e) => setNewTags(e.target.value)}
+                  className="input-field"
+                />
+              </div>
+
+              {newType !== 'Project Showcase' && (
+                <div>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-dim)', display: 'block', marginBottom: '6px' }}>ROLE & XP REWARD</label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. Backend Dev" 
+                      value={roleInput}
+                      onChange={(e) => setRoleInput(e.target.value)}
+                      className="input-field" 
+                      style={{ flex: 2 }}
+                    />
+                    <input 
+                      type="number" 
+                      placeholder="XP" 
+                      value={xpInput}
+                      onChange={(e) => setXpInput(e.target.value)}
+                      className="input-field" 
+                      style={{ flex: 1 }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'end', gap: '10px', marginTop: '4px' }}>
+              <button type="button" onClick={() => setShowCreateForm(false)} className="btn-secondary" style={{ padding: '8px 16px', fontSize: '0.8rem' }}>Cancel</button>
+              <button type="submit" className="btn-primary" style={{ padding: '8px 16px', fontSize: '0.8rem' }}>Broadcast Live</button>
+            </div>
+          </form>
         )}
 
-        {/* Posts List */}
+        {/* FEED POSTS LIST */}
         {filteredPosts.length === 0 ? (
           <div className="glass-panel" style={{ padding: '48px', textAlign: 'center', color: 'var(--text-dim)' }}>
-            No posts found. Start by sharing your first project!
+            No listings found in this opportunity channel.
           </div>
         ) : (
-          filteredPosts.map((post) => {
-            const hasRated = post.ratings.some(r => r.rater === userProfile?.name);
-            const activeInput = ratingInput[post.id] || { stars: 5, comment: '' };
-
-            return (
-              <article key={post.id} className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                
-                {/* Header: User Profile Details */}
-                <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'start' }}>
-                  <div 
-                    onClick={() => navigate('profile', { username: post.creatorUsername })}
-                    style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
-                  >
-                    <img 
-                      src={post.creatorAvatar} 
-                      alt={post.creatorName} 
-                      style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border-light)' }} 
-                    />
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <strong style={{ fontSize: '0.9rem', color: 'var(--text-main)' }}>{post.creatorName}</strong>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>@{post.creatorUsername}</span>
-                      </div>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                        {shortenAddress(post.creatorAddress)}
-                      </span>
+          filteredPosts.map((post) => (
+            <article key={post.id} className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              
+              {/* Post Header */}
+              <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'start' }}>
+                <div 
+                  onClick={() => navigate('profile', { username: post.creatorUsername })}
+                  style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+                >
+                  <img 
+                    src={post.creatorAvatar} 
+                    alt={post.creatorName} 
+                    style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border-light)' }} 
+                  />
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <strong style={{ fontSize: '0.9rem', color: 'var(--text-main)' }}>{post.creatorName}</strong>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>@{post.creatorUsername}</span>
                     </div>
-                  </div>
-
-                  {/* Date and IPFS CID indicator */}
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', display: 'block' }}>
-                      {new Date(post.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                    </span>
-                    <a 
-                      href={`https://ipfs.io/ipfs/${post.ipfsCid}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ fontSize: '0.65rem', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none', justifyContent: 'end', marginTop: '4px' }}
-                    >
-                      <Layers size={10} />
-                      IPFS CID
-                    </a>
-                    {post.txHash && (
-                      <a 
-                        href={`https://sepolia.etherscan.io/tx/${post.txHash}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ fontSize: '0.65rem', color: 'var(--accent-purple)', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none', justifyContent: 'end', marginTop: '4px' }}
-                      >
-                        <Layers size={10} />
-                        Sepolia Tx ↗
-                      </a>
-                    )}
+                    <span style={{ fontSize: '0.7rem', color: 'var(--accent-purple)', fontWeight: 600 }}>{post.leagues}</span>
                   </div>
                 </div>
 
-                {/* Body Content */}
-                <div>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '8px', color: 'var(--text-main)' }}>
-                    {post.title}
-                  </h3>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.5', whiteSpace: 'pre-line' }}>
-                    {post.description}
-                  </p>
+                <span style={{
+                  fontSize: '0.65rem',
+                  background: post.type.includes('Teammate') ? 'rgba(0, 242, 254, 0.08)' : post.type.includes('Collaborator') ? 'rgba(155, 81, 224, 0.08)' : 'rgba(255,255,255,0.05)',
+                  color: post.type.includes('Teammate') ? 'var(--accent-cyan)' : post.type.includes('Collaborator') ? 'var(--accent-purple)' : 'var(--text-muted)',
+                  border: '1px solid ' + (post.type.includes('Teammate') ? 'rgba(0, 242, 254, 0.2)' : post.type.includes('Collaborator') ? 'rgba(155, 81, 224, 0.2)' : 'var(--border-light)'),
+                  padding: '4px 10px',
+                  borderRadius: '20px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em'
+                }}>
+                  {post.type}
+                </span>
+              </div>
 
-                  {/* GitHub attachment block */}
-                  {post.githubUrl && (
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      background: 'rgba(0, 0, 0, 0.2)',
-                      border: '1px solid var(--border-light)',
-                      borderRadius: '8px',
-                      padding: '12px 16px',
-                      gap: '12px',
-                      marginTop: '12px'
-                    }}>
-                      <GitFork size={20} />
-                      <div style={{ flex: 1 }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 600, display: 'block' }}>Linked Github Repository</span>
-                        <a 
-                          href={post.githubUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          style={{ fontSize: '0.7rem', color: 'var(--accent-cyan)', textDecoration: 'none' }}
-                        >
-                          {post.githubUrl}
-                        </a>
-                      </div>
-                    </div>
-                  )}
+              {/* Post Content */}
+              <div>
+                <h4 style={{ fontSize: '1.05rem', color: 'var(--text-main)', fontWeight: 700, marginBottom: '8px' }}>
+                  {post.title}
+                </h4>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.5' }}>
+                  {post.description}
+                </p>
+              </div>
 
-                  {/* Image attachment block */}
-                  {post.imageUrl && (
-                    <div style={{
-                      borderRadius: '12px',
-                      overflow: 'hidden',
-                      marginTop: '12px',
-                      maxHeight: '360px',
-                      border: '1px solid var(--border-light)'
-                    }}>
-                      <img src={post.imageUrl} alt="post content" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </div>
-                  )}
+              {/* Special Opportunity details badge */}
+              {post.opportunityDetails && (
+                <div style={{
+                  background: 'rgba(0, 0, 0, 0.3)',
+                  border: '1px solid var(--border-light)',
+                  borderRadius: '10px',
+                  padding: '16px',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                  gap: '12px'
+                }}>
+                  <div>
+                    <span style={{ fontSize: '0.6rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>Target Role</span>
+                    <strong style={{ fontSize: '0.8rem', color: 'var(--text-main)', display: 'block' }}>{post.opportunityDetails.role}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.6rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>Project / Challenge</span>
+                    <strong style={{ fontSize: '0.8rem', color: 'var(--text-main)', display: 'block' }}>{post.opportunityDetails.project}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.6rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>On-Chain Reward</span>
+                    <strong style={{ fontSize: '0.8rem', color: 'var(--accent-cyan)', display: 'block' }}>+{post.opportunityDetails.xpReward} XP</strong>
+                  </div>
                 </div>
+              )}
 
-                {/* Tags */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              {/* Tags and Footer CTAs */}
+              <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', borderTop: '1px solid var(--border-light)', paddingTop: '16px' }}>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                   {post.tags.map((tag) => (
-                    <span 
-                      key={tag} 
-                      onClick={() => navigate('explore', { search: tag })}
-                      style={{ fontSize: '0.65rem', background: 'rgba(0, 242, 254, 0.05)', color: 'var(--accent-cyan)', padding: '2px 8px', borderRadius: '10px', cursor: 'pointer' }}
-                    >
+                    <span key={tag} style={{ fontSize: '0.65rem', background: 'rgba(255,255,255,0.03)', padding: '2px 8px', borderRadius: '4px', color: 'var(--text-muted)' }}>
                       #{tag}
                     </span>
                   ))}
                 </div>
 
-                {/* Star rating summary */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  background: 'rgba(255, 255, 255, 0.02)',
-                  padding: '10px 16px',
-                  borderRadius: '8px',
-                  border: '1px solid var(--border-light)',
-                  justifyContent: 'between',
-                  gap: '12px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Star size={16} fill="#f59e0b" stroke="#f59e0b" />
-                    <strong style={{ fontSize: '0.9rem' }}>{post.starsCount || 'No Ratings'}</strong>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
-                      ({post.ratings.length} {post.ratings.length === 1 ? 'rating' : 'ratings'})
-                    </span>
-                  </div>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
-                    Type: <strong style={{ color: 'var(--text-main)' }}>{post.type}</strong>
-                  </span>
-                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={() => handleSharePost(post.title)} className="btn-secondary" style={{ padding: '6px 10px', fontSize: '0.7rem' }}>
+                    <Share2 size={12} />
+                    Share
+                  </button>
 
-                {/* Rating Input Drawer (if logged in, has not voted, and score is not restricted) */}
-                {userProfile && !hasRated && !lowScoreRestricted && (
-                  <div style={{
-                    background: 'rgba(0, 242, 254, 0.03)',
-                    border: '1px dashed rgba(0, 242, 254, 0.15)',
-                    borderRadius: '8px',
-                    padding: '16px',
-                    marginTop: '4px'
-                  }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 600, display: 'block', marginBottom: '8px', color: 'var(--accent-cyan)' }}>
-                      Submit Content Quality Attestation
-                    </span>
-                    
-                    {/* Stars slider */}
-                    <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
-                      {[1, 2, 3, 4, 5].map((val) => (
-                        <button
-                          key={val}
-                          type="button"
-                          onClick={() => handleStarSelect(post.id, val)}
-                          style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px' }}
-                        >
-                          <Star 
-                            size={20} 
-                            fill={val <= activeInput.stars ? '#f59e0b' : 'none'} 
-                            stroke={val <= activeInput.stars ? '#f59e0b' : 'var(--text-dim)'} 
-                          />
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Optional Comment */}
-                    <input 
-                      type="text"
-                      placeholder="Add an optional comment detailing the work quality..."
-                      value={activeInput.comment}
-                      onChange={(e) => handleCommentChange(post.id, e.target.value)}
-                      className="input-field"
-                      style={{ fontSize: '0.8rem', padding: '8px 12px', marginBottom: '12px' }}
-                    />
-
+                  {post.opportunityDetails && post.creatorUsername !== userProfile.username && (
                     <button 
-                      onClick={() => submitRatingClick(post.id)}
+                      onClick={() => handleApplyToOpportunity(post.id)}
                       className="btn-primary" 
-                      style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                      style={{ padding: '6px 14px', fontSize: '0.7rem' }}
                     >
-                      Submit Star Rating
+                      <Send size={12} />
+                      Apply & Send DNA Card
                     </button>
-                  </div>
-                )}
-
-                {/* Rating success state indicator */}
-                {hasRated && (
-                  <div style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(16, 185, 129, 0.05)', padding: '8px 12px', borderRadius: '6px' }}>
-                    <CheckCircle size={14} />
-                    You have successfully submitted your cryptographically signed rating on this work.
-                  </div>
-                )}
-
-                {/* Actions bottom-bar */}
-                <div style={{ display: 'flex', gap: '20px', borderTop: '1px solid var(--border-light)', paddingTop: '12px', color: 'var(--text-muted)' }}>
-                  <button style={{ background: 'transparent', border: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.8rem' }}>
-                    <Heart size={16} />
-                    <span>{post.likes}</span>
-                  </button>
-                  <button style={{ background: 'transparent', border: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.8rem' }}>
-                    <MessageSquare size={16} />
-                    <span>{post.commentsCount} Comments</span>
-                  </button>
-                  <button 
-                    onClick={() => handleShare(post.id)}
-                    style={{ background: 'transparent', border: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.8rem', marginLeft: 'auto' }}
-                  >
-                    <Share2 size={16} />
-                    <span>Share</span>
-                  </button>
-                </div>
-
-              </article>
-            );
-          })
-        )}
-      </div>
-
-      {/* Suggested Sidebar panels */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        
-        {/* Top Creators list */}
-        <div className="glass-panel" style={{ padding: '20px' }}>
-          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '16px', color: 'var(--accent-cyan)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Top Creators
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {systemUsers.slice(0, 4).map((user) => (
-              <div 
-                key={user.username}
-                onClick={() => navigate('profile', { username: user.username })}
-                style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '6px', borderRadius: '8px', transition: 'var(--transition-smooth)' }}
-                className="hover-card-bg"
-              >
-                <img 
-                  src={user.avatar} 
-                  alt={user.name} 
-                  style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} 
-                />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 600, display: 'block', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.name}</span>
-                  <span style={{ fontSize: '0.65rem', color: 'var(--text-dim)' }}>@{user.username}</span>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--accent-cyan)' }}>{user.poofieScore}</span>
-                  <span style={{ fontSize: '0.55rem', color: 'var(--text-dim)', display: 'block' }}>SCORE</span>
+                  )}
                 </div>
               </div>
+
+            </article>
+          ))
+        )}
+
+      </div>
+
+      {/* RIGHT COLUMN: Clan discussions & leagues dashboard */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        
+        {/* Clans Discussions Hub */}
+        <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', height: 'fit-content' }}>
+          <h4 style={{ fontSize: '0.9rem', color: 'var(--text-main)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Users size={16} style={{ color: 'var(--accent-cyan)' }} />
+            Clan Discussions
+          </h4>
+
+          {/* Clan Chat Selector */}
+          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+            {userProfile.joinedClans.map(clan => (
+              <button
+                key={clan}
+                onClick={() => setSelectedClanChat(clan)}
+                className={`tab-btn ${selectedClanChat === clan ? 'active' : ''}`}
+                style={{ fontSize: '0.7rem', padding: '4px 8px' }}
+              >
+                {clan.split(' ')[0]}
+              </button>
             ))}
           </div>
+
+          {/* Clan Chat Box */}
+          {selectedClanChat ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              
+              {/* Messages container */}
+              <div style={{
+                background: 'rgba(0,0,0,0.2)',
+                borderRadius: '8px',
+                padding: '12px',
+                height: '200px',
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                border: '1px solid var(--border-light)'
+              }}>
+                {(clanDiscussions[selectedClanChat] || []).map((msg, idx) => (
+                  <div key={idx} style={{ fontSize: '0.75rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'between', color: msg.sender === userProfile.username ? 'var(--accent-cyan)' : 'var(--accent-purple)' }}>
+                      <strong>{msg.name}</strong>
+                      <span style={{ fontSize: '0.6rem', color: 'var(--text-dim)' }}>{msg.time}</span>
+                    </div>
+                    <p style={{ color: 'var(--text-muted)', marginTop: '2px', lineHeight: '1.3' }}>{msg.msg}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Chat Input form */}
+              <form onSubmit={handleSendClanChat} style={{ display: 'flex', gap: '6px' }}>
+                <input 
+                  type="text" 
+                  placeholder={`Chat in #${selectedClanChat.toLowerCase().replace(/\s+/g, '-')}`}
+                  value={chatMessageInput}
+                  onChange={(e) => setChatMessageInput(e.target.value)}
+                  className="input-field"
+                  style={{ fontSize: '0.75rem', padding: '6px 12px' }}
+                />
+                <button type="submit" className="btn-primary" style={{ padding: '6px 12px' }}>
+                  <Send size={12} />
+                </button>
+              </form>
+
+            </div>
+          ) : (
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textAlign: 'center' }}>
+              Join a Clan or select one to view discussions.
+            </p>
+          )}
+
         </div>
 
-        {/* Explore specific skill categories list */}
-        <div className="glass-panel" style={{ padding: '20px' }}>
-          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '16px', color: 'var(--accent-cyan)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Trending Skills
-          </h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {['Solidity', 'Smart Contracts', 'React', 'UI/UX Design', 'ZK-Proofs', 'Technical Writing', 'Auditing'].map((skill) => (
-              <span
-                key={skill}
-                onClick={() => navigate('explore', { search: skill })}
+        {/* Dynamic Starter Leagues */}
+        <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <h4 style={{ fontSize: '0.9rem', color: 'var(--text-main)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Trophy size={16} style={{ color: '#f59e0b' }} />
+            Active Leagues
+          </h4>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {[
+              { name: 'GitHub League', rank: userProfile.leagues?.github || 'Bronze', icon: <GitFork size={14} style={{ color: 'var(--accent-cyan)' }} /> },
+              { name: 'Hackathon League', rank: userProfile.leagues?.hackathon || 'Bronze', icon: <Trophy size={14} style={{ color: '#f59e0b' }} /> },
+              { name: 'Open Source League', rank: userProfile.leagues?.openSource || 'Bronze', icon: <Code size={14} style={{ color: 'var(--accent-purple)' }} /> }
+            ].map(league => (
+              <div 
+                key={league.name} 
+                onClick={() => navigate('xp')}
                 style={{
-                  fontSize: '0.7rem',
-                  background: 'rgba(255, 255, 255, 0.03)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'between',
+                  padding: '10px 12px',
+                  background: 'rgba(255,255,255,0.02)',
+                  borderRadius: '8px',
                   border: '1px solid var(--border-light)',
-                  padding: '4px 10px',
-                  borderRadius: '16px',
                   cursor: 'pointer',
-                  color: 'var(--text-muted)',
                   transition: 'var(--transition-smooth)'
                 }}
               >
-                {skill}
-              </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem' }}>
+                  {league.icon}
+                  <span>{league.name}</span>
+                </div>
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: league.rank === 'Gold' || league.rank === 'Platinum' ? '#f59e0b' : 'var(--text-dim)' }}>
+                  {league.rank}
+                </span>
+              </div>
             ))}
           </div>
         </div>

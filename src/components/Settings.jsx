@@ -2,37 +2,49 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   Settings as SettingsIcon, 
-  Wallet, 
-  AlertTriangle, 
   User, 
-  Lock,
-  Globe,
-  Bell,
-  Trash2
+  Trash2,
+  Sparkles,
+  Link,
+  ChevronRight,
+  ShieldAlert,
+  GitFork
 } from 'lucide-react';
 
 export default function Settings() {
   const { 
-    wallet, 
+    wallet,
     userProfile, 
-    lowScoreRestricted, 
-    simulateLowScoreRestriction,
-    handleCompleteOnboarding,
+    handleClearDatabase,
+    handleConnectAccount,
     addNotification,
-    handleClearDatabase
+    addXP
   } = useApp();
 
   const [name, setName] = useState(userProfile?.name || '');
   const [bio, setBio] = useState(userProfile?.bio || '');
   
-  // Local profile save
-  const handleSaveProfile = (e) => {
-    e.preventDefault();
-    handleCompleteOnboarding({ name, bio });
-    addNotification('success', 'Profile settings updated successfully!');
-  };
+  // Custom states for platform connectors
+  const [githubUser, setGithubUser] = useState('');
+  const [leetcodeUser, setLeetcodeUser] = useState('');
+  const [devfolioUser, setDevfolioUser] = useState('');
 
   if (!userProfile) return null;
+
+  const handleSaveProfile = (e) => {
+    e.preventDefault();
+    userProfile.name = name;
+    userProfile.bio = bio;
+    addNotification('success', 'Developer profile details saved successfully!');
+  };
+
+  const triggerConnect = (platform, val) => {
+    if (!val) return alert(`Please enter a handle for ${platform.toUpperCase()}`);
+    handleConnectAccount(platform, val);
+    if (platform === 'github') setGithubUser('');
+    if (platform === 'leetcode') setLeetcodeUser('');
+    if (platform === 'devfolio') setDevfolioUser('');
+  };
 
   return (
     <div className="animate-slide-up" style={{ maxWidth: '720px', margin: '0 auto', width: '100%' }}>
@@ -42,8 +54,8 @@ export default function Settings() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '28px', borderBottom: '1px solid var(--border-light)', paddingBottom: '16px' }}>
           <SettingsIcon size={24} style={{ color: 'var(--accent-cyan)' }} />
           <div>
-            <h2 style={{ fontFamily: 'var(--font-heading)' }}>Account Settings</h2>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Configure credentials, wallets, and ecosystem simulators</span>
+            <h2 style={{ fontFamily: 'var(--font-heading)' }}>Sandbox Settings</h2>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Configure credentials, connect mock developer profiles, and simulate ecosystem states.</span>
           </div>
         </div>
 
@@ -53,11 +65,11 @@ export default function Settings() {
           <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <User size={16} />
-              Profile Customizations
+              Developer Profile Details
             </h3>
             
             <div>
-              <label style={{ fontSize: '0.7rem', color: 'var(--text-dim)', display: 'block', marginBottom: '6px' }}>FULL NAME</label>
+              <label style={{ fontSize: '0.7rem', color: 'var(--text-dim)', display: 'block', marginBottom: '6px' }}>DISPLAY NAME</label>
               <input 
                 type="text" 
                 value={name}
@@ -68,7 +80,7 @@ export default function Settings() {
             </div>
 
             <div>
-              <label style={{ fontSize: '0.7rem', color: 'var(--text-dim)', display: 'block', marginBottom: '6px' }}>BIO / BRIEF INTRODUCTION</label>
+              <label style={{ fontSize: '0.7rem', color: 'var(--text-dim)', display: 'block', marginBottom: '6px' }}>BIO / ATTRIBUTION</label>
               <textarea 
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
@@ -78,131 +90,120 @@ export default function Settings() {
             </div>
 
             <button type="submit" className="btn-primary" style={{ alignSelf: 'end', padding: '8px 16px', fontSize: '0.8rem' }}>
-              Save Profile Changes
+              Save Profile Details
             </button>
           </form>
 
-          {/* Section 2: Wallet Details */}
-          <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {/* Section 2: Platforms Connections */}
+          <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Wallet size={16} />
-              Connected Cryptographic Metadata
+              <Link size={16} style={{ color: 'var(--accent-purple)' }} />
+              Manage Developer Attestations
             </h3>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              <div style={{ padding: '12px', background: 'rgba(0,0,0,0.2)', borderRadius: '6px', border: '1px solid var(--border-light)' }}>
-                <span style={{ fontSize: '0.65rem', color: 'var(--text-dim)', display: 'block' }}>BLOCKCHAIN NETWORK</span>
-                <strong>Ethereum Mainnet (Chain ID: 1)</strong>
-              </div>
-              <div style={{ padding: '12px', background: 'rgba(0,0,0,0.2)', borderRadius: '6px', border: '1px solid var(--border-light)' }}>
-                <span style={{ fontSize: '0.65rem', color: 'var(--text-dim)', display: 'block' }}>MOCK WALLET BALANCE</span>
-                <strong>{wallet.balance}</strong>
-              </div>
-            </div>
 
-            <div style={{ padding: '12px', background: 'rgba(0,0,0,0.2)', borderRadius: '6px', border: '1px solid var(--border-light)', fontSize: '0.75rem' }}>
-              <span style={{ fontSize: '0.65rem', color: 'var(--text-dim)', display: 'block', marginBottom: '4px' }}>CRYPTOGRAPHIC PERSONAL SIGNATURE HASH</span>
-              <code style={{ fontSize: '0.65rem', wordBreak: 'break-all', color: 'var(--accent-cyan)' }}>
-                {wallet.signature}
-              </code>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              
+              {/* GitHub Controller */}
+              <div style={{ padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
+                <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', marginBottom: '8px' }}>
+                  <strong>GitHub Parser Status</strong>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: userProfile.connectedAccounts?.github?.connected ? '#10b981' : 'var(--text-dim)' }}>
+                    {userProfile.connectedAccounts?.github?.connected ? `Linked (@${userProfile.connectedAccounts.github.username})` : 'Unlinked'}
+                  </span>
+                </div>
+                {!userProfile.connectedAccounts?.github?.connected ? (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input 
+                      type="text" 
+                      placeholder="Enter GitHub handle" 
+                      value={githubUser}
+                      onChange={(e) => setGithubUser(e.target.value)}
+                      className="input-field"
+                      style={{ fontSize: '0.75rem', padding: '6px 12px' }}
+                    />
+                    <button onClick={() => triggerConnect('github', githubUser)} className="btn-secondary" style={{ padding: '6px 14px', fontSize: '0.75rem' }}>Link Profile</button>
+                  </div>
+                ) : (
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Commits, repository counts, and contribution vectors linked to Developer DNA scorecard.</span>
+                )}
+              </div>
+
+              {/* LeetCode Controller */}
+              <div style={{ padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
+                <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', marginBottom: '8px' }}>
+                  <strong>LeetCode Tracker Status</strong>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: userProfile.connectedAccounts?.leetcode?.connected ? '#10b981' : 'var(--text-dim)' }}>
+                    {userProfile.connectedAccounts?.leetcode?.connected ? `Linked (@${userProfile.connectedAccounts.leetcode.username})` : 'Unlinked'}
+                  </span>
+                </div>
+                {!userProfile.connectedAccounts?.leetcode?.connected ? (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input 
+                      type="text" 
+                      placeholder="Enter LeetCode username" 
+                      value={leetcodeUser}
+                      onChange={(e) => setLeetcodeUser(e.target.value)}
+                      className="input-field"
+                      style={{ fontSize: '0.75rem', padding: '6px 12px' }}
+                    />
+                    <button onClick={() => triggerConnect('leetcode', leetcodeUser)} className="btn-secondary" style={{ padding: '6px 14px', fontSize: '0.75rem' }}>Link Tracker</button>
+                  </div>
+                ) : (
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Algorithmic complexity vectors synced to identity scores.</span>
+                )}
+              </div>
+
+              {/* Devfolio Controller */}
+              <div style={{ padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
+                <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', marginBottom: '8px' }}>
+                  <strong>Devfolio Hackathon Status</strong>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: userProfile.connectedAccounts?.devfolio?.connected ? '#10b981' : 'var(--text-dim)' }}>
+                    {userProfile.connectedAccounts?.devfolio?.connected ? `Linked (@${userProfile.connectedAccounts.devfolio.username})` : 'Unlinked'}
+                  </span>
+                </div>
+                {!userProfile.connectedAccounts?.devfolio?.connected ? (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input 
+                      type="text" 
+                      placeholder="Enter Devfolio username" 
+                      value={devfolioUser}
+                      onChange={(e) => setDevfolioUser(e.target.value)}
+                      className="input-field"
+                      style={{ fontSize: '0.75rem', padding: '6px 12px' }}
+                    />
+                    <button onClick={() => triggerConnect('devfolio', devfolioUser)} className="btn-secondary" style={{ padding: '6px 14px', fontSize: '0.75rem' }}>Link Hackathons</button>
+                  </div>
+                ) : (
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}> podium finalist awards linked to DNA strategist traits.</span>
+                )}
+              </div>
+
             </div>
           </div>
 
-          {/* Section 3: Low-Score Simulator (PRD rating restriction logic) */}
+          {/* Section 3: Simulators Hub */}
           <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ef4444' }}>
-              <AlertTriangle size={18} />
-              <h3 style={{ fontSize: '0.95rem', fontWeight: 700 }}>Ecosystem Restrictions Sandbox</h3>
-            </div>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Sparkles size={16} />
+              Ecosystem Attestation Simulators
+            </h3>
             
             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-              The platform incorporates a <strong>Rating Privileges System</strong>. If a user's on-chain Poofie Score drops below the predefined threshold of <strong>20</strong>, voting privileges are instantly locked. Turn on the simulator below to test this mechanism.
+              Simulate actions to instantly witness gamification updates, streak records, level milestones, and badge unlocks in real-time.
             </p>
 
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'between',
-              background: 'rgba(239, 68, 68, 0.05)',
-              border: '1px solid rgba(239, 68, 68, 0.2)',
-              borderRadius: '8px',
-              padding: '16px',
-              gap: '16px'
-            }}>
-              <div>
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, display: 'block', color: 'var(--text-main)' }}>
-                  Simulate Low Poofie Score (&lt;20)
-                </span>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                  Forces score to 12. Rating/voting items on the home feed or peer reviews will lock.
-                </span>
-              </div>
-
-              {/* Toggle switch */}
-              <button
-                type="button"
-                onClick={() => simulateLowScoreRestriction(!lowScoreRestricted)}
-                style={{
-                  background: lowScoreRestricted ? '#ef4444' : 'rgba(255,255,255,0.05)',
-                  border: '1px solid ' + (lowScoreRestricted ? '#ef4444' : 'var(--border-light)'),
-                  color: lowScoreRestricted ? '#000' : 'var(--text-muted)',
-                  fontFamily: 'var(--font-heading)',
-                  fontWeight: 800,
-                  fontSize: '0.75rem',
-                  padding: '8px 16px',
-                  borderRadius: '20px',
-                  cursor: 'pointer',
-                  transition: 'var(--transition-smooth)'
-                }}
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <button 
+                onClick={() => addXP(350, 'Simulated smart audit compilation and submission')}
+                className="btn-secondary"
+                style={{ fontSize: '0.75rem', padding: '8px 16px' }}
               >
-                {lowScoreRestricted ? 'Simulating Active' : 'Enable Simulation'}
+                Simulate Major Contribution (+350 XP)
               </button>
             </div>
           </div>
 
-          {/* Section 4: Sepolia Testnet Resources */}
-          <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Globe size={16} style={{ color: 'var(--accent-purple)' }} />
-              Sepolia Testnet Faucets & Blockchains
-            </h3>
-            
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-              Interact with the live Sepolia testnet contracts using testnet ETH tokens. If your balance is low, you can request free Sepolia ETH from the following verified faucets:
-            </p>
-
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '4px' }}>
-              <a 
-                href="https://sepoliafaucet.com/" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="btn-secondary"
-                style={{ fontSize: '0.75rem', padding: '8px 14px' }}
-              >
-                Alchemy Sepolia Faucet ↗
-              </a>
-              <a 
-                href="https://www.infura.io/faucet/sepolia" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="btn-secondary"
-                style={{ fontSize: '0.75rem', padding: '8px 14px' }}
-              >
-                Infura Sepolia Faucet ↗
-              </a>
-              <a 
-                href="https://sepolia.etherscan.io/" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="btn-secondary"
-                style={{ fontSize: '0.75rem', padding: '8px 14px' }}
-              >
-                Sepolia Etherscan Explorer ↗
-              </a>
-            </div>
-          </div>
-
-          {/* Section 5: Clear Database Danger Zone */}
+          {/* Section 4: Clear Database Danger Zone */}
           <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#ef4444', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Trash2 size={16} />
@@ -210,7 +211,7 @@ export default function Settings() {
             </h3>
             
             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-              Wipe all local storage states including customized posts, reputation reviews, user profiles, daily streaks, and verification progress. Restores default system users immediately.
+              Wipe all browser localStorage attributes including your custom DNA, domain preferences, connected mock platform details, notifications history, and streaks. Restores pristine preset developers.
             </p>
 
             <button
@@ -220,7 +221,7 @@ export default function Settings() {
               style={{ alignSelf: 'start', display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', fontSize: '0.8rem' }}
             >
               <Trash2 size={14} />
-              Clear Local Database & Restart
+              Reset Local Storage & Restart Sandbox
             </button>
           </div>
 

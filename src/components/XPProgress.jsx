@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   Award, 
@@ -6,16 +6,24 @@ import {
   Sparkles, 
   CheckCircle, 
   Clock, 
-  ChevronRight,
-  TrendingUp,
-  Shield,
-  Layers,
-  Star,
-  Users
+  GitFork, 
+  Trophy, 
+  Code, 
+  Terminal,
+  Activity,
+  Layers
 } from 'lucide-react';
 
 export default function XPProgress() {
-  const { userProfile, streakCount, triggerDailyQuest, navigate } = useApp();
+  const { 
+    userProfile, 
+    streakCount, 
+    triggerDailyQuest, 
+    navigate,
+    addXP 
+  } = useApp();
+
+  const [completedSubtasks, setCompletedSubtasks] = useState({});
 
   if (!userProfile) return null;
 
@@ -23,33 +31,69 @@ export default function XPProgress() {
   const xpPercentage = (currentLevelXP / 1000) * 100;
   const xpToNextLevel = 1000 - currentLevelXP;
 
-  // Active Quests list
-  const quests = [
-    { id: 'checkin', name: 'Simulate Daily Wallet Check-in', xp: 100, completed: streakCount > 0, action: triggerDailyQuest, actionText: 'Check-in Now' },
-    { id: 'post', name: 'Publish an On-Chain Project or Article', xp: 150, completed: false, action: () => navigate('create'), actionText: 'Create Post' },
-    { id: 'rate', name: 'Submit 1-5 Star Content Attestation', xp: 50, completed: false, action: () => navigate('feed'), actionText: 'Browse Feed' },
-    { id: 'reputation', name: 'Review a Coworker across 3 Metrics', xp: 100, completed: false, action: () => navigate('explore'), actionText: 'Discover Users' }
+  // Leagues Data Structure
+  const leagues = [
+    {
+      id: 'github',
+      name: 'GitHub League 💻',
+      currentRank: userProfile.leagues?.github || 'Bronze',
+      icon: <GitFork size={20} style={{ color: 'var(--accent-cyan)' }} />,
+      desc: 'Tracks sandbox code commits, streaks, and repository indexes.',
+      ranks: ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Legend'],
+      subtasks: [
+        { id: 'gh-1', text: 'Connect verified Github profile', xp: 100, isCompleted: userProfile.connectedAccounts?.github?.connected },
+        { id: 'gh-2', text: 'Achieve a 3-day active contribution streak', xp: 150, isCompleted: streakCount >= 3 }
+      ]
+    },
+    {
+      id: 'hackathon',
+      name: 'Hackathon League 🏆',
+      currentRank: userProfile.leagues?.hackathon || 'Bronze',
+      icon: <Trophy size={20} style={{ color: '#f59e0b' }} />,
+      desc: 'Tracks mock team registrations, finalist listings, and podium podium awards.',
+      ranks: ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Legend'],
+      subtasks: [
+        { id: 'hk-1', text: 'Apply as teammate to an active request', xp: 80, isCompleted: streakCount > 0 },
+        { id: 'hk-2', text: 'Link Devfolio hackathon tracker profile', xp: 120, isCompleted: userProfile.connectedAccounts?.devfolio?.connected }
+      ]
+    },
+    {
+      id: 'opensource',
+      name: 'Open Source League 🔓',
+      currentRank: userProfile.leagues?.openSource || 'Bronze',
+      icon: <Code size={20} style={{ color: 'var(--accent-purple)' }} />,
+      desc: 'Tracks mock pull-request merges, code evaluations, and public tooling contributions.',
+      ranks: ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Legend'],
+      subtasks: [
+        { id: 'os-1', text: 'Join clan guild discussion thread', xp: 100, isCompleted: userProfile.joinedClans?.length > 0 },
+        { id: 'os-2', text: 'Broadcast first project showcase in feed', xp: 150, isCompleted: false }
+      ]
+    }
   ];
 
-  // System Achievements Milestones
-  const milestones = [
-    { name: 'Human First', desc: 'Complete Wallet, Email, and Phone identity link.', badge: '✅', unlocked: userProfile.badges.verifiedHuman },
-    { name: 'Professional Tier', desc: 'Successfully satisfy DAO verifier and mint Star Badge.', badge: '⭐', unlocked: userProfile.badges.verifiedProfessional },
-    { name: 'Reputation Sentinel', desc: 'Submit a valid professional review with detailed comments.', badge: '🛡️', unlocked: userProfile.poofieXP > 800 },
-    { name: 'Content Monarch', desc: 'Publish a work that achieves a 4.5+ star aggregate rating.', badge: '👑', unlocked: userProfile.level >= 3 },
-    { name: 'Level 5 Pioneer', desc: 'Climb the reputational ranks to reach XP Level 5.', badge: '🚀', unlocked: userProfile.level >= 5 },
-    { name: 'Streak General', desc: 'Build a rating streak of 5 consecutive contributions.', badge: '🔥', unlocked: streakCount >= 5 }
+  // Unlocked Modifiers (Personality Badges)
+  const badgesList = [
+    { name: 'Night Owl 🌙', desc: 'Awarded to developers who submit commits or code ratings between 12:00 AM and 5:00 AM.', unlocked: true },
+    { name: 'Bug Hunter 🐞', desc: 'Awarded for deconstructing and reviewing EVM vault circuits or resolving compiler audits.', unlocked: userProfile.level >= 2 },
+    { name: 'Weekend Warrior ⚔️', desc: 'Awarded for keeping streaks and check-ins active over Saturday & Sunday.', unlocked: streakCount >= 3 },
+    { name: 'Research Enthusiast 📚', desc: 'Awarded for exploring cryptography and zero-knowledge reputation architectures.', unlocked: userProfile.dnaType === 'Scholar' || userProfile.secondaryDnaType === 'Scholar' },
+    { name: 'Catalyst Glue ⚡', desc: 'Awarded for active mentorship and coordinating multiple clan collaborations.', unlocked: userProfile.dnaType === 'Catalyst' },
+    { name: 'Craftsman Precision 💎', desc: 'Awarded to pixel-perfect visual programmers polishing UI overlays.', unlocked: userProfile.secondaryDnaType === 'Craftsman' }
   ];
+
+  const handleCompleteSubtask = (taskId, xpReward) => {
+    setCompletedSubtasks(prev => ({ ...prev, [taskId]: true }));
+    addXP(xpReward, 'Completed League progression milestone');
+  };
 
   return (
     <div className="animate-slide-up" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px' }}>
       
-      {/* Gamification metrics */}
+      {/* LEFT COLUMN: Leagues progressions */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
         {/* Core level status */}
         <div className="glass-panel" style={{ padding: '32px', position: 'relative', overflow: 'hidden' }}>
-          {/* Visual gradient background overlay */}
           <div style={{
             position: 'absolute',
             right: '-100px',
@@ -64,7 +108,6 @@ export default function XPProgress() {
           }}></div>
 
           <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
-            {/* Visual Level Ring */}
             <div style={{
               width: '100px',
               height: '100px',
@@ -85,9 +128,9 @@ export default function XPProgress() {
             <div style={{ flex: 1, minWidth: '240px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-cyan)', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                 <Sparkles size={14} />
-                <span>Gamification Progression</span>
+                <span>Leagues & Progression System</span>
               </div>
-              <h2 style={{ fontFamily: 'var(--font-heading)', margin: '4px 0 12px 0' }}>Your On-Chain Experience</h2>
+              <h2 style={{ fontFamily: 'var(--font-heading)', margin: '4px 0 12px 0' }}>Your Attested Experience</h2>
               
               <div style={{ display: 'flex', justifyContent: 'between', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
                 <span>Total XP Accumulation: <strong>{userProfile.poofieXP} XP</strong></span>
@@ -108,72 +151,141 @@ export default function XPProgress() {
           </div>
         </div>
 
-        {/* Quest Panel */}
-        <div className="glass-panel" style={{ padding: '24px' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '16px', color: 'var(--text-main)', borderBottom: '1px solid var(--border-light)', paddingBottom: '12px' }}>
-            Daily Gamification Quests
-          </h3>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {quests.map((quest) => (
-              <div 
-                key={quest.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  background: quest.completed ? 'rgba(16, 185, 129, 0.02)' : 'rgba(255,255,255,0.01)',
-                  border: quest.completed ? '1px solid rgba(16, 185, 129, 0.15)' : '1px solid var(--border-light)',
-                  padding: '16px',
-                  borderRadius: '8px',
-                  gap: '16px',
-                  transition: 'var(--transition-smooth)'
-                }}
-              >
-                <div style={{ shrink: 0 }}>
-                  {quest.completed ? (
-                    <CheckCircle size={20} style={{ color: '#10b981' }} />
-                  ) : (
-                    <Clock size={20} style={{ color: 'var(--text-dim)' }} />
-                  )}
-                </div>
-                
-                <div style={{ flex: 1 }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', color: quest.completed ? 'var(--text-muted)' : 'var(--text-main)' }}>
-                    {quest.name}
-                  </span>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--accent-cyan)', fontWeight: 600, display: 'block', marginTop: '4px' }}>
-                    🛡️ +{quest.xp} XP
-                  </span>
-                </div>
-
-                {!quest.completed && (
-                  <button 
-                    onClick={quest.action}
-                    className="btn-secondary"
-                    style={{ padding: '8px 12px', fontSize: '0.75rem', shrink: 0 }}
-                  >
-                    {quest.actionText}
-                    <ChevronRight size={12} />
-                  </button>
-                )}
+        {/* Leagues visual lists */}
+        {leagues.map(league => (
+          <div key={league.id} className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            
+            {/* League Title & current Rank */}
+            <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {league.icon}
+                <h3 style={{ fontSize: '1.1rem', color: 'var(--text-main)', fontWeight: 700, margin: 0 }}>{league.name}</h3>
               </div>
-            ))}
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>ACTIVE RANK:</span>
+                <span style={{
+                  fontSize: '0.75rem',
+                  background: 'rgba(245, 158, 11, 0.08)',
+                  color: '#f59e0b',
+                  border: '1px solid rgba(245, 158, 11, 0.2)',
+                  padding: '4px 10px',
+                  borderRadius: '20px',
+                  fontWeight: 800,
+                  textTransform: 'uppercase'
+                }}>
+                  {league.currentRank} Tier
+                </span>
+              </div>
+            </div>
+
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+              {league.desc}
+            </p>
+
+            {/* League progression visualization mapping */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'between',
+              alignItems: 'center',
+              background: 'rgba(0,0,0,0.2)',
+              borderRadius: '8px',
+              padding: '12px 16px',
+              border: '1px solid var(--border-light)',
+              overflowX: 'auto',
+              gap: '12px'
+            }}>
+              {league.ranks.map((rank, idx) => {
+                const isPassed = idx <= league.ranks.indexOf(league.currentRank);
+                return (
+                  <div key={rank} style={{ display: 'flex', alignItems: 'center', gap: '8px', shrink: 0 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                      <div style={{
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        background: isPassed ? 'var(--accent-cyan)' : 'rgba(255,255,255,0.05)',
+                        color: isPassed ? '#000' : 'var(--text-dim)',
+                        fontSize: '0.65rem',
+                        fontWeight: 800,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        {idx + 1}
+                      </div>
+                      <span style={{ fontSize: '0.6rem', color: isPassed ? 'var(--text-main)' : 'var(--text-dim)', fontWeight: isPassed ? 700 : 400 }}>{rank}</span>
+                    </div>
+                    {idx < league.ranks.length - 1 && (
+                      <div style={{ width: '20px', height: '2px', background: isPassed ? 'var(--accent-cyan)' : 'rgba(255,255,255,0.05)' }}></div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Subtasks checklist */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '4px' }}>
+              <span style={{ fontSize: '0.65rem', color: 'var(--text-dim)', textTransform: 'uppercase' }}>STANDINGS CHALLENGES TO LEVEL UP</span>
+              
+              {league.subtasks.map(task => {
+                const isDone = task.isCompleted || completedSubtasks[task.id];
+                return (
+                  <div 
+                    key={task.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'between',
+                      background: 'rgba(255,255,255,0.01)',
+                      border: '1px solid var(--border-light)',
+                      borderRadius: '8px',
+                      padding: '12px 16px',
+                      gap: '16px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.75rem' }}>
+                      {isDone ? (
+                        <CheckCircle size={16} style={{ color: '#10b981' }} />
+                      ) : (
+                        <Clock size={16} style={{ color: 'var(--text-dim)' }} />
+                      )}
+                      <span style={{ color: isDone ? 'var(--text-muted)' : 'var(--text-main)' }}>{task.text}</span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--accent-cyan)', fontWeight: 600 }}>+{task.xp} XP</span>
+                      {!isDone && (
+                        <button 
+                          onClick={() => handleCompleteSubtask(task.id, task.xp)}
+                          className="btn-secondary" 
+                          style={{ padding: '4px 10px', fontSize: '0.65rem' }}
+                        >
+                          Complete
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
           </div>
-        </div>
+        ))}
 
       </div>
 
-      {/* Sidebar: Milestones & Badging */}
+      {/* RIGHT COLUMN: Streak and unlocked badges */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
-        {/* Rating Streak panel */}
+        {/* Streak Meter */}
         <div className="glass-panel" style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(255, 71, 87, 0.05) 0%, rgba(7,7,10,0.5) 100%)', border: '1px solid rgba(255, 71, 87, 0.15)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
             <Flame size={20} fill="#ff4757" stroke="#ff4757" />
             <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#ff4757' }}>Active Streak Meter</h3>
           </div>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4', marginBottom: '12px' }}>
-            Perform star ratings or submit Professional reviews daily. High streaks grant XP multipliers on all on-chain transactions.
+            Perform sandbox activities, collaborate, and check-in daily. Keeping streaks active unlocks modifier badges!
           </p>
           <div style={{
             background: 'rgba(0,0,0,0.3)',
@@ -189,33 +301,34 @@ export default function XPProgress() {
           </div>
         </div>
 
-        {/* Milestone NFT Grid */}
+        {/* Unlocked personality modifiers */}
         <div className="glass-panel" style={{ padding: '20px' }}>
-          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '16px', color: 'var(--accent-purple)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Milestone NFT Collection
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--accent-purple)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '16px' }}>
+            Personality Modifiers
           </h3>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-            {milestones.map((mil, idx) => (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {badgesList.map((badge, idx) => (
               <div 
                 key={idx}
                 style={{
-                  background: mil.unlocked ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0,0,0,0.4)',
-                  border: mil.unlocked ? '1px solid var(--border-light)' : '1px dashed rgba(255,255,255,0.02)',
+                  background: badge.unlocked ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0,0,0,0.4)',
+                  border: badge.unlocked ? '1px solid var(--border-light)' : '1px dashed rgba(255,255,255,0.02)',
                   borderRadius: '10px',
                   padding: '12px',
-                  textAlign: 'center',
-                  opacity: mil.unlocked ? 1 : 0.4,
-                  transition: 'var(--transition-smooth)',
-                  boxShadow: mil.unlocked ? '0 4px 10px rgba(0,0,0,0.1)' : 'none'
+                  opacity: badge.unlocked ? 1 : 0.4,
+                  transition: 'var(--transition-smooth)'
                 }}
-                title={mil.desc}
               >
-                <span style={{ fontSize: '1.8rem', display: 'block', marginBottom: '6px' }}>{mil.badge}</span>
-                <span style={{ fontSize: '0.7rem', fontWeight: 700, display: 'block', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{mil.name}</span>
-                <span style={{ fontSize: '0.55rem', color: mil.unlocked ? 'var(--accent-cyan)' : 'var(--text-dim)', display: 'block', textTransform: 'uppercase', marginTop: '2px' }}>
-                  {mil.unlocked ? 'Unlocked' : 'Locked'}
-                </span>
+                <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center' }}>
+                  <strong style={{ fontSize: '0.8rem', color: 'var(--text-main)' }}>{badge.name}</strong>
+                  <span style={{ fontSize: '0.55rem', color: badge.unlocked ? 'var(--accent-cyan)' : 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 700 }}>
+                    {badge.unlocked ? 'Attested' : 'Locked'}
+                  </span>
+                </div>
+                <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: '1.3' }}>
+                  {badge.desc}
+                </p>
               </div>
             ))}
           </div>

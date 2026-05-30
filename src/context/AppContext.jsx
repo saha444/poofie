@@ -1,241 +1,217 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { web3Mock, MOCK_SYSTEM_USERS, shortenAddress } from '../utils/web3Mock';
-import { ipfsMock } from '../utils/ipfsMock';
 
 const AppContext = createContext();
 
-// Default initial posts in the system
+// Pre-populated Opportunity Feed
 const INITIAL_POSTS = [
   {
-    id: 'post-1',
+    id: 'opp-1',
     creatorUsername: 'alice_v',
     creatorName: 'Alice Vance',
     creatorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-    creatorAddress: '0x32A7d1d2bC39E92d192B45f448e895B309fD13c0',
-    type: 'Project',
-    title: 'Multi-Sig Safe Auditor Suite',
-    description: 'An open-source auditor toolbox to run static analysis on EVM multi-sig vaults. Integrated with Mythril and Slither workflows under a clean CLI interface.',
-    ipfsCid: 'QmYwAPJzv5CZ1iaAmdw51921319777174A5452f1e',
-    githubUrl: 'https://github.com/alicev/safe-auditor-suite',
-    tags: ['Solidity', 'Security', 'DevTools', 'OpenSource'],
-    starsCount: 4.8,
-    ratings: [
-      { rater: 'Marcus K.', stars: 5, comment: 'Saves hours of audit prep. Exceptionally clean code.' },
-      { rater: 'Elena Rostova', stars: 4.5, comment: 'Brilliant logic! Found two minor gas optimizations, opened a PR.' }
-    ],
-    likes: 24,
-    commentsCount: 3,
-    timestamp: Date.now() - 3600000 * 5, // 5 hours ago
+    type: 'Teammate Request',
+    title: 'Looking for Frontend Dev for Hack4Bengal 🏆',
+    description: 'We are building a zero-knowledge voting dapp for local municipal coordination. Need an absolute wizard in CSS grids and glassmorphism. Maker ⚒️ or Craftsman 💎 DNA preferred!',
+    tags: ['React', 'ZK-Proofs', 'DesignSystem', 'Hackathon'],
+    leagues: 'Hackathon League (Gold)',
+    likes: 42,
+    timestamp: Date.now() - 3600000 * 2, // 2 hours ago
+    opportunityDetails: {
+      role: 'Frontend Developer',
+      location: 'Kolkata / Remote',
+      project: 'Hack4Bengal 2026',
+      xpReward: 250
+    }
   },
   {
-    id: 'post-2',
+    id: 'opp-2',
     creatorUsername: 'marcus_design',
     creatorName: 'Marcus K.',
     creatorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-    creatorAddress: '0x8F94D2554794e537D71C80e1A467DE72aCc3C279',
-    type: 'Image',
-    title: 'Poofie Brand Identity & Glassmorphism Design System',
-    description: 'First iteration of our modular UI design components. Emphasizing translucent overlays, neon drop-shadows, and Outfit typography to feel futuristic yet professional.',
-    imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800',
-    ipfsCid: 'QmXaPnd83918a28C7b3846e9192bC782A7d1',
-    tags: ['UI/UX', 'Figma', 'Branding', 'DesignSystem'],
-    starsCount: 4.7,
-    ratings: [
-      { rater: 'Alice Vance', stars: 5, comment: 'Stunning! The dark mode styling is incredibly polished.' },
-      { rater: 'Devon Carter', stars: 4.3, comment: 'Extremely cohesive theme. Ready for implementation.' }
-    ],
-    likes: 38,
-    commentsCount: 5,
-    timestamp: Date.now() - 3600000 * 12, // 12 hours ago
+    type: 'Collaborator Request',
+    title: 'Building AI Resume Analyzer — Need Backend Developer ⚗️',
+    description: 'We are parsing developer profiles into living JSON vector representations and need a backend engineer to build fast FastAPI routing and database indexing.',
+    tags: ['FastAPI', 'Python', 'Vector-DB', 'AI-Agents'],
+    leagues: 'GitHub League (Platinum)',
+    likes: 28,
+    timestamp: Date.now() - 3600000 * 5, // 5 hours ago
+    opportunityDetails: {
+      role: 'Backend/LLM Developer',
+      location: 'Remote',
+      project: 'AI-Resume-DNA',
+      xpReward: 300
+    }
   },
   {
-    id: 'post-3',
+    id: 'opp-3',
     creatorUsername: 'elena_dev',
     creatorName: 'Elena Rostova',
     creatorAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
-    creatorAddress: '0xBC78e3C9C29A6b4EF504C0dBbB77D2fA35eEd406',
-    type: 'Article',
-    title: 'Zero Knowledge Proofs for Trustless Reputation Attestations',
-    description: 'Exploring how Semaphore can allow users to verify their community reputation score on Ethereum without revealing their wallet address or linked credentials. Dive into our mathematical construction and circuits.',
-    ipfsCid: 'QmZkPrf22839b4BfD71C80e1A467DE72aC091',
-    tags: ['Cryptography', 'ZK-Proofs', 'Privacy', 'Research'],
-    starsCount: 4.9,
-    ratings: [
-      { rater: 'Alice Vance', stars: 5, comment: 'Crucial research. This is the exact trust paradigm Web3 needs.' },
-      { rater: 'Devon Carter', stars: 4.8, comment: 'Masterfully explained. Even non-cryptographers can grasp this.' }
-    ],
-    likes: 42,
-    commentsCount: 4,
+    type: 'Project Showcase',
+    title: 'Zero Knowledge Proofs for Reputation Attestations 🏛️',
+    description: 'Just published the semaphore reputation verification circuits! The code is open-source and allows trustless credentials validation without revealing addresses.',
+    tags: ['Cryptography', 'Slither', 'Rust', 'OpenSource'],
+    leagues: 'Open Source League (Legend)',
+    likes: 67,
+    timestamp: Date.now() - 3600000 * 12, // 12 hours ago
+    opportunityDetails: null
+  },
+  {
+    id: 'opp-4',
+    creatorUsername: 'poofie_hq',
+    creatorName: 'Poofie Protocol',
+    creatorAvatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150',
+    type: 'League Launch',
+    title: 'AI Builder League Season 2 is Officially Live! 🚀',
+    description: 'Get ready for 14 days of intense AI project building. Deploy working AI agents, submit your GitHub repositories, and earn the exclusive "Agent Architect" badge!',
+    tags: ['AI-Agents', 'Hackathon', 'LLM', 'Competitive'],
+    leagues: 'System Alert',
+    likes: 124,
     timestamp: Date.now() - 3600000 * 24, // 1 day ago
+    opportunityDetails: null
   }
 ];
 
-// Pre-populated reputation reviews for mock users
-const INITIAL_REPUTATION_REVIEWS = {
-  alice_v: [
-    { reviewer: 'Marcus K.', relationship: 'Collaborator', skill: 5, trust: 5, reliability: 5, comment: 'Incredibly knowledgeable. Alice audited three smart contracts for us and identified two critical vulnerabilities before deployment.', date: 'May 12, 2026' },
-    { reviewer: 'Elena Rostova', relationship: 'Teammate', skill: 5, trust: 5, reliability: 5, comment: 'Perfect execution during our hackathon project. Documented every module flawlessly.', date: 'April 28, 2026' }
-  ],
-  marcus_design: [
-    { reviewer: 'Alice Vance', relationship: 'Client', skill: 5, trust: 5, reliability: 4, comment: 'Exceptional designer. Marcus took our abstract concept and delivered stunning wireframes. Highly recommended, though occasionally slightly delayed due to intense detail work.', date: 'May 18, 2026' },
-    { reviewer: 'Devon Carter', relationship: 'Collaborator', skill: 5, trust: 5, reliability: 5, comment: 'A joy to work with. Marcus understands Web3 user behavior better than anyone in the industry.', date: 'May 05, 2026' }
-  ],
-  elena_dev: [
-    { reviewer: 'Alice Vance', relationship: 'Teammate', skill: 5, trust: 4, reliability: 4, comment: 'Highly skilled cryptographer. Her implementations are highly optimized.', date: 'May 10, 2026' }
-  ],
-  devon_c: [
-    { reviewer: 'Marcus K.', relationship: 'Collaborator', skill: 5, trust: 5, reliability: 5, comment: 'Devon is a fantastic editor and content writer. Transformed our dev docs into clean, engaging guides.', date: 'May 15, 2026' }
-  ]
-};
-
-// Initial endorsements
-const INITIAL_ENDORSEMENTS = {
-  alice_v: [
-    { endorserName: 'Marcus K.', endorserUsername: 'marcus_design', relation: 'Worked together', reason: 'Exceptional smart contract engineer and brilliant auditor.' },
-    { endorserName: 'Elena Rostova', endorserUsername: 'elena_dev', relation: 'Teammate', reason: 'Unbelievably precise Solidity implementation.' },
-    { endorserName: 'Devon Carter', endorserUsername: 'devon_c', relation: 'Collaborator', reason: 'A leader in Web3 decentralized technology.' }
-  ],
-  marcus_design: [
-    { endorserName: 'Alice Vance', endorserUsername: 'alice_v', relation: 'Worked together', reason: 'World-class Web3 UI/UX designer.' },
-    { endorserName: 'Elena Rostova', endorserUsername: 'elena_dev', relation: 'Collaborator', reason: 'Stunning design system builder.' },
-    { endorserName: 'Devon Carter', endorserUsername: 'devon_c', relation: 'Collaborator', reason: 'Extremely detailed UX analyst.' }
-  ],
-  elena_dev: [
-    { endorserName: 'Alice Vance', endorserUsername: 'alice_v', relation: 'Teammate', reason: 'Outstanding ZK-cryptographer and researcher.' },
-    { endorserName: 'Marcus K.', endorserUsername: 'marcus_design', relation: 'Collaborator', reason: 'Excellent mathematical developer and team player.' },
-    { endorserName: 'Devon Carter', endorserUsername: 'devon_c', relation: 'Collaborator', reason: 'Highly qualified cryptology expert.' }
-  ],
-  devon_c: [
-    { endorserName: 'Alice Vance', endorserUsername: 'alice_v', relation: 'Collaborator', reason: 'Clear technical documentation specialist.' },
-    { endorserName: 'Marcus K.', endorserUsername: 'marcus_design', relation: 'Worked together', reason: 'Outstanding marketing and content coordination.' },
-    { endorserName: 'Elena Rostova', endorserUsername: 'elena_dev', relation: 'Collaborator', reason: 'Perfect copy writing for engineering logs.' }
-  ]
-};
+// Pre-populated developers
+const MOCK_DEVELOPERS = [
+  {
+    name: 'Alice Vance',
+    username: 'alice_v',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+    dnaType: 'Architect',
+    secondaryDnaType: 'Scholar',
+    domain: 'AI',
+    specialization: 'Agent Architect',
+    clan: 'AI Builders',
+    bio: 'ZK-researcher and Agent Architect. Optimizing smart contract verification circuits.',
+    skills: ['Solidity', 'ZK-Proofs', 'Python', 'Rust'],
+    poofieXP: 3800,
+    level: 4,
+    traitScores: { Builder: 65, Explorer: 72, Strategist: 50, Architect: 92, Scholar: 88, Catalyst: 45, Craftsman: 60, Alchemist: 55 },
+    leagues: { github: 'Gold', hackathon: 'Silver', openSource: 'Platinum', ai: 'Gold' },
+    badges: ['Research Enthusiast 📚', 'Bug Hunter 🐞'],
+    connectedAccounts: {
+      github: { connected: true, username: 'alicev', repos: 34, stars: 128, contributions: 840 },
+      leetcode: { connected: true, username: 'alice_v', solved: 430, contestRating: 1820 },
+      devfolio: { connected: true, username: 'alicevance', hackathons: 8, awards: 3 },
+      linkedin: { connected: true, username: 'alice-vance' }
+    },
+    projects: [
+      { id: 'ap-1', name: 'Safe Auditor Suite', desc: 'Static analysis toolkit for multi-sig safes.', tech: 'Solidity, Rust' },
+      { id: 'ap-2', name: 'ZK Attester Core', desc: 'Semaphore-based credential attestation registry.', tech: 'Circom, React' }
+    ]
+  },
+  {
+    name: 'Marcus K.',
+    username: 'marcus_design',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+    dnaType: 'Maker',
+    secondaryDnaType: 'Craftsman',
+    domain: 'Web Development',
+    specialization: 'Full Stack Developer',
+    clan: 'Frontend Guild',
+    bio: 'UI/UX obsessive and full stack developer. Building interactive layouts that glow.',
+    skills: ['React', 'CSS Grid', 'Node.js', 'TypeScript', 'Web3.js'],
+    poofieXP: 2900,
+    level: 3,
+    traitScores: { Builder: 94, Explorer: 70, Strategist: 52, Architect: 45, Scholar: 38, Catalyst: 60, Craftsman: 88, Alchemist: 50 },
+    leagues: { github: 'Gold', hackathon: 'Gold', openSource: 'Silver', ai: 'Bronze' },
+    badges: ['Weekend Warrior ⚔️', 'Night Owl 🌙'],
+    connectedAccounts: {
+      github: { connected: true, username: 'marcus_dev', repos: 22, stars: 74, contributions: 490 },
+      leetcode: { connected: false },
+      devfolio: { connected: true, username: 'marcusk', hackathons: 12, awards: 5 },
+      linkedin: { connected: true, username: 'marcus-k' }
+    },
+    projects: [
+      { id: 'mp-1', name: 'Glassmorphic Design Lib', desc: 'Pre-styled components for cyber-themed React apps.', tech: 'React, CSS' },
+      { id: 'mp-2', name: 'Hackathon Scout', desc: 'Aggregates developer challenges globally.', tech: 'Next.js, Tailwind' }
+    ]
+  },
+  {
+    name: 'Elena Rostova',
+    username: 'elena_dev',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
+    dnaType: 'Explorer',
+    secondaryDnaType: 'Scholar',
+    domain: 'Cybersecurity',
+    specialization: 'Systems Engineer',
+    clan: 'Research Circle',
+    bio: 'System builder and open-source audit geek. Exploring zero-knowledge trust layers.',
+    skills: ['C++', 'Rust', 'Linux', 'Solidity', 'Go'],
+    poofieXP: 4500,
+    level: 5,
+    traitScores: { Builder: 50, Explorer: 96, Strategist: 60, Architect: 82, Scholar: 90, Catalyst: 35, Craftsman: 70, Alchemist: 65 },
+    leagues: { github: 'Platinum', hackathon: 'Bronze', openSource: 'Legend', ai: 'Bronze' },
+    badges: ['Bug Hunter 🐞', 'Mentor 🎓'],
+    connectedAccounts: {
+      github: { connected: true, username: 'elenar', repos: 56, stars: 320, contributions: 1240 },
+      leetcode: { connected: true, username: 'elena_leetcode', solved: 620, contestRating: 2010 },
+      devfolio: { connected: false },
+      linkedin: { connected: true, username: 'elena-rostova' }
+    },
+    projects: [
+      { id: 'ep-1', name: 'Slither EVM Evaluator', desc: 'Custom rulesets for analyzing DeFi vaults.', tech: 'Python, Slither' },
+      { id: 'ep-2', name: 'Rust Network Gateway', desc: 'Ultra-low latency RPC multiplexer.', tech: 'Rust, Tokio' }
+    ]
+  }
+];
 
 export const AppProvider = ({ children }) => {
-  // App routing state
+  // App routing
   const [activeView, setActiveView] = useState('landing');
   const [viewParams, setViewParams] = useState({});
 
-  // Wallet Connection State
+  // Wallet State
   const [wallet, setWallet] = useState(() => {
     const saved = localStorage.getItem('poofie_wallet');
-    return saved ? JSON.parse(saved) : {
-      connected: false,
-      address: '',
-      chainId: null,
-      balance: '0.00 ETH',
-      signature: ''
-    };
+    return saved ? JSON.parse(saved) : { connected: false, address: '', balance: '0.00 ETH' };
   });
 
-  // Logged-in User Profile
+  // User Profile
   const [userProfile, setUserProfile] = useState(() => {
     const saved = localStorage.getItem('poofie_userProfile');
     return saved ? JSON.parse(saved) : null;
   });
 
-  // Database of users and profiles
+  // System Users
   const [systemUsers, setSystemUsers] = useState(() => {
     const saved = localStorage.getItem('poofie_systemUsers');
-    return saved ? JSON.parse(saved) : MOCK_SYSTEM_USERS;
+    return saved ? JSON.parse(saved) : MOCK_DEVELOPERS;
   });
 
-  const [reputationReviews, setReputationReviews] = useState(() => {
-    const saved = localStorage.getItem('poofie_reputationReviews');
-    return saved ? JSON.parse(saved) : INITIAL_REPUTATION_REVIEWS;
-  });
-
-  const [endorsements, setEndorsements] = useState(() => {
-    const saved = localStorage.getItem('poofie_endorsements');
-    return saved ? JSON.parse(saved) : INITIAL_ENDORSEMENTS;
-  });
-
-  // Content Feed Database
+  // Posts Feed
   const [posts, setPosts] = useState(() => {
     const saved = localStorage.getItem('poofie_posts');
     return saved ? JSON.parse(saved) : INITIAL_POSTS;
   });
 
-  // User-specific activities & gamification
+  // Notifications
   const [notifications, setNotifications] = useState(() => {
     const saved = localStorage.getItem('poofie_notifications');
     return saved ? JSON.parse(saved) : [
-      { id: 'notif-1', type: 'system', message: 'Welcome to Poofie! Connect your wallet to begin building your on-chain reputation.', timestamp: Date.now() }
+      { id: 'notif-1', type: 'system', message: 'Welcome to Poofie Sandbox! Discover your unique Developer DNA.', timestamp: Date.now() }
     ];
   });
 
-  // Loading indicator states
-  const [txLoading, setTxLoading] = useState(false);
-  const [ipfsLoading, setIpfsLoading] = useState(false);
-  const [txStep, setTxStep] = useState('');
-
-  // Rating privilege state (restricted if Poofie Score falls below threshold)
-  const [lowScoreRestricted, setLowScoreRestricted] = useState(() => {
-    const saved = localStorage.getItem('poofie_lowScoreRestricted');
-    return saved ? JSON.parse(saved) : false;
-  });
-  
-  const SCORE_THRESHOLD = 20;
-
-  // Track simulated active streak
+  // Streak & Restrictions
   const [streakCount, setStreakCount] = useState(() => {
     const saved = localStorage.getItem('poofie_streakCount');
     return saved ? parseInt(saved) : 0;
   });
 
-  // XP level curve
-  const XP_PER_LEVEL = 1000;
+  const [txLoading, setTxLoading] = useState(false);
+  const [ipfsLoading, setIpfsLoading] = useState(false);
+  const [txStep, setTxStep] = useState('');
 
-  // Sepolia testnet constraint check (11155111 is 0xaa36a7)
-  const isSepoliaNetwork = !wallet.connected || wallet.chainId === 11155111;
-
-  // Dynamic chain and account switches listeners
-  useEffect(() => {
-    if (typeof window !== 'undefined' && typeof window.ethereum !== 'undefined') {
-      const handleChainChanged = (chainIdHex) => {
-        const chainId = parseInt(chainIdHex, 16);
-        setWallet(prev => ({
-          ...prev,
-          chainId,
-          network: chainId === 11155111 ? 'Sepolia Testnet' : `Incorrect Network (${chainId})`
-        }));
-        
-        if (chainId === 11155111) {
-          addNotification('success', '🟣 Switched network to Sepolia Testnet.');
-        } else {
-          addNotification('warning', '⚠️ Connected to incorrect network. Please switch to Sepolia Testnet.');
-        }
-      };
-
-      const handleAccountsChanged = (accounts) => {
-        if (accounts.length === 0) {
-          handleDisconnect();
-        } else {
-          const address = accounts[0];
-          setWallet(prev => ({ ...prev, address }));
-          addNotification('system', `Active account switched to: ${shortenAddress(address)}`);
-        }
-      };
-
-      window.ethereum.on('chainChanged', handleChainChanged);
-      window.ethereum.on('accountsChanged', handleAccountsChanged);
-
-      return () => {
-        window.ethereum.removeListener('chainChanged', handleChainChanged);
-        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-      };
-    }
-  }, []);
-
-  // Auto-route on mount if connected
+  // Auto-route on mount
   useEffect(() => {
     if (wallet.connected && userProfile) {
       setActiveView('feed');
     }
   }, []);
 
-  // --- LOCALSTORAGE PERSISTENCE AUTOMATION ---
+  // Sync state to local storage
   useEffect(() => {
     localStorage.setItem('poofie_wallet', JSON.stringify(wallet));
   }, [wallet]);
@@ -249,14 +225,6 @@ export const AppProvider = ({ children }) => {
   }, [systemUsers]);
 
   useEffect(() => {
-    localStorage.setItem('poofie_reputationReviews', JSON.stringify(reputationReviews));
-  }, [reputationReviews]);
-
-  useEffect(() => {
-    localStorage.setItem('poofie_endorsements', JSON.stringify(endorsements));
-  }, [endorsements]);
-
-  useEffect(() => {
     localStorage.setItem('poofie_posts', JSON.stringify(posts));
   }, [posts]);
 
@@ -268,18 +236,14 @@ export const AppProvider = ({ children }) => {
     localStorage.setItem('poofie_streakCount', streakCount.toString());
   }, [streakCount]);
 
-  useEffect(() => {
-    localStorage.setItem('poofie_lowScoreRestricted', JSON.stringify(lowScoreRestricted));
-  }, [lowScoreRestricted]);
-
-  // Custom router logic
+  // Navigate helper
   const navigate = (view, params = {}) => {
     setActiveView(view);
     setViewParams(params);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Add notification helper
+  // Add Notification
   const addNotification = (type, message, actionText = null, actionView = null, actionParams = {}) => {
     setNotifications(prev => [
       {
@@ -296,33 +260,29 @@ export const AppProvider = ({ children }) => {
     ]);
   };
 
-  // Add XP helper with float feedback simulation
+  // Add XP
   const addXP = (amount, reason) => {
     if (!userProfile) return;
-
     setUserProfile(prev => {
       const newXP = prev.poofieXP + amount;
-      const newLevel = Math.floor(newXP / XP_PER_LEVEL) + 1;
+      const newLevel = Math.floor(newXP / 1000) + 1;
       const leveledUp = newLevel > prev.level;
 
       if (leveledUp) {
         addNotification(
           'milestone',
-          `🎉 Level Up! You reached Level ${newLevel}! Keep contributing to build your reputation score.`,
-          'View Rewards',
-          'xp'
+          `🎉 Level Up! You reached Level ${newLevel}! DNA Traits are becoming richer.`
         );
       }
-
       return {
         ...prev,
         poofieXP: newXP,
         level: newLevel
       };
     });
-
     addNotification('xp', `🛡️ Earned +${amount} XP: ${reason}`);
 
+    // floating effect
     const feedback = document.createElement('div');
     feedback.className = 'xp-pop-indicator';
     feedback.innerText = `+${amount} XP`;
@@ -330,618 +290,320 @@ export const AppProvider = ({ children }) => {
     setTimeout(() => feedback.remove(), 1800);
   };
 
-  // Switch network programmatically via MetaMask
-  const handleSwitchNetwork = async () => {
-    try {
-      setTxLoading(true);
-      setTxStep('Requesting network switch to Sepolia Testnet...');
-      await web3Mock.switchNetworkToSepolia();
-      
-      const connection = await web3Mock.connectWallet();
-      setWallet(prev => ({
-        ...prev,
-        chainId: connection.chainId,
-        network: connection.network,
-        balance: connection.balance
-      }));
-
-      setTxLoading(false);
-      setTxStep('');
-      addNotification('success', 'Successfully connected to Sepolia Testnet!');
-    } catch (e) {
-      console.error(e);
-      setTxLoading(false);
-      setTxStep('');
-      alert('Failed to switch networks automatically. Please switch to Sepolia manually inside your MetaMask.');
-    }
-  };
-
-  // Connect wallet
+  // Connect Wallet
   const handleConnectWallet = async () => {
-    try {
-      setTxLoading(true);
-      setTxStep('Requesting MetaMask Connection...');
-      const connection = await web3Mock.connectWallet();
-      
-      setTxStep('Verifying address signature...');
-      const signatureObj = await web3Mock.personalSign(
-        connection.address, 
-        `Sign this message to establish your persistent Poofie identity on Sepolia.\n\nNonce: ${Math.floor(Math.random() * 100000)}`
-      );
-
+    setTxLoading(true);
+    setTxStep('Initializing Web3 Signature Attestation...');
+    
+    // Simulate slight lag for metamask visual effect
+    setTimeout(() => {
       setWallet({
         connected: true,
-        address: connection.address,
-        chainId: connection.chainId,
-        balance: connection.balance,
-        signature: signatureObj.signature,
-        network: connection.network
+        address: '0x32A7d1d2bC39E92d192B45f448e895B309fD13c0',
+        balance: '4.82 ETH'
       });
-
       setTxLoading(false);
       setTxStep('');
-
+      
       const savedProfile = localStorage.getItem('poofie_userProfile');
       if (savedProfile) {
-        addNotification('system', 'Wallet reconnected successfully.');
+        addNotification('success', 'Wallet connected. Loading your Developer DNA.');
         navigate('feed');
       } else {
-        addNotification('system', 'Wallet connected. Complete human verification to get your badge.');
+        addNotification('system', 'Wallet authenticated. Complete the Developer DNA Quiz.');
         navigate('auth');
       }
-    } catch (e) {
-      console.error(e);
-      setTxLoading(false);
-      setTxStep('');
-      alert('Wallet connection aborted or failed: ' + e.message);
-    }
+    }, 1200);
   };
 
-  // Disconnect Wallet
+  // Disconnect
   const handleDisconnect = () => {
-    localStorage.removeItem('poofie_wallet');
-    setWallet({
-      connected: false,
-      address: '',
-      chainId: null,
-      balance: '0.00 ETH',
-      signature: ''
-    });
+    setWallet({ connected: false, address: '', balance: '0.00 ETH' });
     setUserProfile(null);
     setStreakCount(0);
-    setLowScoreRestricted(false);
     navigate('landing');
     addNotification('system', 'Wallet disconnected.');
   };
 
-  // Database Reset Action
+  // Database Reset
   const handleClearDatabase = () => {
     localStorage.clear();
-    setWallet({
-      connected: false,
-      address: '',
-      chainId: null,
-      balance: '0.00 ETH',
-      signature: ''
-    });
+    setWallet({ connected: false, address: '', balance: '0.00 ETH' });
     setUserProfile(null);
-    setSystemUsers(MOCK_SYSTEM_USERS);
-    setReputationReviews(INITIAL_REPUTATION_REVIEWS);
-    setEndorsements(INITIAL_ENDORSEMENTS);
+    setSystemUsers(MOCK_DEVELOPERS);
     setPosts(INITIAL_POSTS);
     setNotifications([
-      { id: 'notif-1', type: 'system', message: 'Database reset complete. Welcome back to Poofie Sandbox!', timestamp: Date.now() }
+      { id: 'notif-1', type: 'system', message: 'Database reset complete. Welcome to pristine Poofie Sandbox!', timestamp: Date.now() }
     ]);
     setStreakCount(0);
-    setLowScoreRestricted(false);
     navigate('landing');
-    alert('Local browser database has been reset completely!');
+    alert('Sandbox database has been reset successfully!');
   };
 
-  // Auth human verification flow
-  const handleAuthVerify = async (email, phone, usernameInput) => {
-    try {
-      setTxLoading(true);
-      setTxStep('Uploading verification records to IPFS...');
-      const metadata = { emailHash: 'hash_email_sha256', phoneHash: 'hash_phone_sha256', wallet: wallet.address };
-      const ipfsResult = await ipfsMock.uploadMetadata(metadata);
-
-      setTxStep('Minting Verified Human badge NFT on Sepolia...');
-      const mintResult = await web3Mock.mintVerificationBadge(wallet.address, 'human');
-
-      const newProfile = {
-        address: wallet.address,
-        name: usernameInput.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-        username: usernameInput || 'new_user',
-        bio: '',
-        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
-        skills: [],
-        portfolio: {},
-        badges: { verifiedHuman: true, verifiedProfessional: false },
-        poofieScore: 10,
-        poofieXP: 500,
-        level: 1,
-        ratingStreak: 0,
-        interests: [],
-        contentScore: 10,
-        reputationScore: 0,
-      };
-
-      setUserProfile(newProfile);
-      setTxLoading(false);
-      setTxStep('');
-
-      addNotification('success', `Verified Human NFT minted on Sepolia! ✅ Explorer: ${shortenAddress(mintResult.txHash)}`);
-      navigate('onboarding');
-    } catch (e) {
-      console.error(e);
-      setTxLoading(false);
-      setTxStep('');
-      alert('Verification transaction failed: ' + e.message);
-    }
+  // Finish verification & Onboarding Auth
+  const handleAuthVerify = (email, phone, usernameInput) => {
+    // Generate initial blank profile, then navigate to DNA Quiz
+    const newProfile = {
+      name: usernameInput.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+      username: usernameInput || 'new_user',
+      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+      bio: 'Ready to discover my Developer DNA.',
+      skills: [],
+      projects: [],
+      poofieXP: 300,
+      level: 1,
+      dnaType: '',
+      secondaryDnaType: '',
+      traitScores: { Builder: 0, Explorer: 0, Strategist: 0, Architect: 0, Scholar: 0, Catalyst: 0, Craftsman: 0, Alchemist: 0 },
+      domains: [],
+      specialization: '',
+      clan: '',
+      joinedClans: [],
+      leagues: { github: 'Bronze', hackathon: 'Bronze', openSource: 'Bronze', ai: 'Bronze' },
+      badges: [],
+      connectedAccounts: {
+        github: { connected: false },
+        leetcode: { connected: false },
+        devfolio: { connected: false },
+        linkedin: { connected: false }
+      }
+    };
+    setUserProfile(newProfile);
+    addNotification('success', 'Credentials authenticated. Proceed to the DNA Quiz.');
   };
 
-  // Complete onboarding profile configurations
-  const handleCompleteOnboarding = (profileDetails) => {
+  // Set computed DNA from quiz
+  const handleDNAQuizCompletion = (traitScores, connectedAccts) => {
+    // Compute DNA
+    const sortedTraits = Object.entries(traitScores).sort((a, b) => b[1] - a[1]);
+    
+    // Trait translation map (Builder -> Maker, Strategist -> Strategist...)
+    const traitToDna = {
+      Builder: 'Maker',
+      Architect: 'Architect',
+      Explorer: 'Explorer',
+      Strategist: 'Strategist',
+      Scholar: 'Scholar',
+      Alchemist: 'Alchemist',
+      Catalyst: 'Catalyst',
+      Craftsman: 'Craftsman'
+    };
+
+    const primaryTrait = sortedTraits[0][0];
+    const secondaryTrait = sortedTraits[1][0];
+
+    const primaryDNA = traitToDna[primaryTrait] || 'Maker';
+    const secondaryDNA = traitToDna[secondaryTrait] || 'Explorer';
+
     setUserProfile(prev => {
       const updated = {
         ...prev,
-        name: profileDetails.name || prev.name,
-        bio: profileDetails.bio || 'Building in Web3.',
-        avatar: profileDetails.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
-        skills: profileDetails.skills || prev.skills,
-        portfolio: profileDetails.portfolio || prev.portfolio,
-        interests: profileDetails.interests || prev.interests,
-        poofieXP: prev.poofieXP + 300
+        traitScores,
+        dnaType: primaryDNA,
+        secondaryDnaType: secondaryDNA,
+        connectedAccounts: {
+          ...prev.connectedAccounts,
+          ...connectedAccts
+        },
+        poofieXP: prev.poofieXP + 500
       };
       return updated;
     });
 
-    addNotification('success', 'Profile onboarding completed! Welcome to Poofie Feed.');
+    addNotification('success', `AI Developer DNA Generated: You are a ${primaryDNA} (Secondary: ${secondaryDNA})!`);
+  };
+
+  // Complete Domain and Specialization Onboarding
+  const handleCompleteDomainSetup = (domainsSelected, specialization, clanToJoin) => {
+    // Assign skills based on selected specialization
+    let baseSkills = [];
+    if (specialization.includes('Architect') || specialization.includes('Backend')) {
+      baseSkills = ['Node.js', 'FastAPI', 'Python', 'Docker', 'Systems Design'];
+    } else if (specialization.includes('ML') || specialization.includes('AI')) {
+      baseSkills = ['Python', 'PyTorch', 'HuggingFace', 'OpenAI', 'LangChain'];
+    } else if (specialization.includes('Frontend') || specialization.includes('Full Stack')) {
+      baseSkills = ['React', 'TypeScript', 'CSS Grid', 'Next.js', 'Redux'];
+    } else {
+      baseSkills = ['Rust', 'Go', 'Linux CLI', 'Solidity', 'Git'];
+    }
+
+    // Default project for satoshi
+    const baseProjects = [
+      { id: 'sp-1', name: 'Open Attestation Nodes', desc: 'Decentralized parser mapping code signatures to persona attributes.', tech: baseSkills.slice(0, 3).join(', ') }
+    ];
+
+    setUserProfile(prev => {
+      const updated = {
+        ...prev,
+        domains: domainsSelected,
+        specialization,
+        clan: clanToJoin,
+        joinedClans: [clanToJoin],
+        skills: baseSkills,
+        projects: baseProjects,
+        poofieXP: prev.poofieXP + 400,
+        bio: `${specialization} specializing in ${domainsSelected.join(' & ')}. Exploring ${clanToJoin}.`
+      };
+      return updated;
+    });
+
+    addNotification('success', `Completed onboarding! Welcome to the ${clanToJoin} Clan!`);
     navigate('feed');
   };
 
-  // Create post and submit metadata to IPFS/EVM
-  const handleCreatePost = async (title, description, tags, type, mediaFile, githubUrl) => {
+  // Create Project Post in Opportunity Network Feed
+  const handleCreatePost = (title, description, tags, type, opportunityDetails = null) => {
     if (!userProfile) return;
 
-    try {
-      setIpfsLoading(true);
-      setTxStep('Encrypting and uploading media file to IPFS...');
-      let ipfsMedia = null;
-      if (mediaFile) {
-        ipfsMedia = await ipfsMock.uploadFile(mediaFile);
-      } else {
-        await ipfsMock.uploadFile({ size: description.length * 10 });
-      }
+    const newPost = {
+      id: `opp-${Date.now()}`,
+      creatorUsername: userProfile.username,
+      creatorName: userProfile.name,
+      creatorAvatar: userProfile.avatar,
+      type,
+      title,
+      description,
+      tags,
+      leagues: 'Active Contributor',
+      likes: 0,
+      timestamp: Date.now(),
+      opportunityDetails
+    };
 
-      setTxStep('Pinning post metadata payload to IPFS IPNS...');
-      const metadata = {
-        title,
-        description,
-        tags,
-        type,
-        mediaCid: ipfsMedia?.cid || 'none',
-        creator: wallet.address,
-        timestamp: Date.now()
-      };
-      const ipfsMeta = await ipfsMock.uploadMetadata(metadata);
-
-      setTxStep('Broadcasting transaction to Sepolia testnet registry...');
-      const tx = await web3Mock.sendEVMTransaction(
-        wallet.address, 
-        '0xpoofiecontentregistryaddress', 
-        `registerContent("${ipfsMeta.cid}")`
-      );
-
-      const newPost = {
-        id: `post-${Date.now()}`,
-        creatorUsername: userProfile.username,
-        creatorName: userProfile.name,
-        creatorAvatar: userProfile.avatar,
-        creatorAddress: userProfile.address,
-        type,
-        title,
-        description,
-        imageUrl: type === 'Image' ? (mediaFile ? URL.createObjectURL(mediaFile) : 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800') : null,
-        ipfsCid: ipfsMeta.cid,
-        githubUrl: type === 'Project' ? (githubUrl || 'https://github.com') : null,
-        tags,
-        starsCount: 0,
-        ratings: [],
-        likes: 0,
-        commentsCount: 0,
-        timestamp: Date.now(),
-        txHash: tx.txHash
-      };
-
-      setPosts(prev => [newPost, ...prev]);
-      setIpfsLoading(false);
-      setTxStep('');
-
-      addXP(150, 'Published content to IPFS');
-      addNotification('success', `Post indexed on Sepolia! Tx: ${shortenAddress(tx.txHash)}`, 'View Post', 'profile', { username: userProfile.username });
-      navigate('feed');
-    } catch (e) {
-      console.error(e);
-      setIpfsLoading(false);
-      setTxStep('');
-      alert('Failed to publish content on IPFS.');
-    }
+    setPosts(prev => [newPost, ...prev]);
+    addXP(150, 'Published listing to Opportunity Feed');
+    addNotification('success', `Successfully published: "${title}"`);
+    navigate('feed');
   };
 
-  // Content star-rating flow
-  const handleRateContent = async (postId, stars, comment) => {
-    if (!userProfile) return;
-    if (lowScoreRestricted) {
-      alert('Rating privileges restricted. Improve your Poofie Score first!');
+  // Sandbox Persona Switcher
+  const triggerSandboxSwitch = (username) => {
+    if (username === 'satoshi') {
+      const savedSatoshi = localStorage.getItem('poofie_satoshiBackup');
+      if (savedSatoshi) {
+        setUserProfile(JSON.parse(savedSatoshi));
+      } else {
+        // default satoshi
+        setUserProfile({
+          name: 'Satoshi Nakamoto',
+          username: 'satoshi',
+          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+          bio: 'Building the next evolution of developer identity and Discovery.',
+          skills: ['C++', 'Rust', 'Solidity', 'Cryptography'],
+          projects: [{ id: 'sp-1', name: 'Poofie Protocol Core', desc: 'AI-Powered Developer Identity and Discovery Network.', tech: 'React, Vite, Node.js' }],
+          poofieXP: 1200,
+          level: 2,
+          dnaType: 'Maker',
+          secondaryDnaType: 'Scholar',
+          domains: ['AI', 'Web Development'],
+          specialization: 'Agent Architect',
+          clan: 'AI Builders',
+          joinedClans: ['AI Builders'],
+          leagues: { github: 'Platinum', hackathon: 'Silver', openSource: 'Gold', ai: 'Bronze' },
+          badges: ['Night Owl 🌙', 'Bug Hunter 🐞'],
+          connectedAccounts: {
+            github: { connected: true, username: 'satoshi', repos: 40, stars: 1024, contributions: 1200 },
+            leetcode: { connected: false },
+            devfolio: { connected: false },
+            linkedin: { connected: false }
+          }
+        });
+      }
+      addNotification('system', 'Switched session to Satoshi Nakamoto (Your Custom Profile).');
+      navigate('feed');
       return;
     }
 
-    try {
-      setTxLoading(true);
-      setTxStep('Generating zero-knowledge Content Quality Attestation...');
-      const signatureObj = await web3Mock.personalSign(
-        wallet.address, 
-        `Rate Post ${postId}: ${stars} Stars`
-      );
+    // Backup current satoshi if it exists and is custom
+    if (userProfile && userProfile.username === 'satoshi') {
+      localStorage.setItem('poofie_satoshiBackup', JSON.stringify(userProfile));
+    }
 
-      setTxStep('Submitting rating block to on-chain Sepolia Registry...');
-      const tx = await web3Mock.sendEVMTransaction(
-        wallet.address, 
-        '0xpoofiecontentregistry', 
-        `rateContent("${postId}", ${stars}, "${signatureObj.signature}")`
-      );
-
-      let updatedPostCreator = null;
-      let postTitle = '';
-
-      setPosts(prevPosts => {
-        return prevPosts.map(post => {
-          if (post.id === postId) {
-            postTitle = post.title;
-            const updatedRatings = [...post.ratings, {
-              rater: userProfile.name,
-              stars,
-              comment
-            }];
-            const totalStars = updatedRatings.reduce((sum, r) => sum + r.stars, 0);
-            const averageStars = parseFloat((totalStars / updatedRatings.length).toFixed(1));
-            updatedPostCreator = post.creatorUsername;
-
-            return {
-              ...post,
-              ratings: updatedRatings,
-              starsCount: averageStars,
-              rateTxHash: tx.txHash
-            };
-          }
-          return post;
-        });
-      });
-
-      if (updatedPostCreator) {
-        setSystemUsers(prevUsers => {
-          return prevUsers.map(sysUser => {
-            if (sysUser.username === updatedPostCreator) {
-              const ratingImpact = stars >= 4 ? 3 : stars <= 2 ? -2 : 1;
-              const newContentScore = Math.max(0, sysUser.contentScore + ratingImpact);
-              const newPoofieScore = newContentScore + sysUser.reputationScore;
-              return {
-                ...sysUser,
-                contentScore: newContentScore,
-                poofieScore: newPoofieScore
-              };
-            }
-            return sysUser;
-          });
-        });
-
-        if (updatedPostCreator === userProfile.username) {
-          setUserProfile(prev => {
-            const ratingImpact = stars >= 4 ? 3 : stars <= 2 ? -2 : 1;
-            const newContentScore = Math.max(0, prev.contentScore + ratingImpact);
-            const newPoofieScore = newContentScore + prev.reputationScore;
-            return {
-              ...prev,
-              contentScore: newContentScore,
-              poofieScore: newPoofieScore
-            };
-          });
-        }
-      }
-
-      setTxLoading(false);
-      setTxStep('');
-
-      addXP(50, 'Rated community content');
-      setStreakCount(prev => prev + 1);
-      addNotification('success', `Submitted ${stars}★ rating on post: "${postTitle}"`);
-    } catch (e) {
-      console.error(e);
-      setTxLoading(false);
-      setTxStep('');
-      alert('Failed to submit post rating: ' + e.message);
+    const dev = systemUsers.find(d => d.username === username);
+    if (dev) {
+      setUserProfile(dev);
+      addNotification('system', `Switched session to Sandbox Persona: ${dev.name} (${dev.dnaType} DNA)`);
+      navigate('feed');
     }
   };
 
-  // Professional reputation rating flow (Skill, Trust, Reliability)
-  const handleRateReputation = async (targetUsername, ratings, comment, relationship, customRaterName = null) => {
-    if (!userProfile && !customRaterName) return;
-
-    const reviewerName = customRaterName || userProfile.name;
-
-    try {
-      setTxLoading(true);
-      setTxStep('Assembling reputation vector components...');
-      const ratingsHash = `skill:${ratings.skill};trust:${ratings.trust};reliability:${ratings.reliability}`;
-      
-      let signature = '0x_simulated_sig';
-      if (!customRaterName) {
-        const signatureObj = await web3Mock.personalSign(
-          wallet.address, 
-          `Rate User ${targetUsername} Reputation: ${ratingsHash}`
-        );
-        signature = signatureObj.signature;
-      }
-
-      setTxStep('Encrypting and uploading reviews payload to IPFS...');
-      const ipfsResult = await ipfsMock.uploadMetadata({
-        target: targetUsername,
-        rater: customRaterName || userProfile.username,
-        ratings,
-        comment,
-        relationship,
-        signature
-      });
-
-      setTxStep('Anchoring metadata hash to Sepolia Reputation Score Contract...');
-      const tx = await web3Mock.sendEVMTransaction(
-        wallet.address,
-        '0xpoofiereputationregistry',
-        `submitReputationReview("${targetUsername}", "${ipfsResult.cid}")`
-      );
-
-      const newReview = {
-        reviewer: reviewerName,
-        relationship,
-        skill: ratings.skill,
-        trust: ratings.trust,
-        reliability: ratings.reliability,
-        comment,
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        txHash: tx.txHash
-      };
-
-      setReputationReviews(prev => ({
-        ...prev,
-        [targetUsername]: [newReview, ...(prev[targetUsername] || [])]
-      }));
-
-      const userReviews = [newReview, ...(reputationReviews[targetUsername] || [])];
-      const avgReviewScore = userReviews.reduce((sum, r) => sum + ((r.skill + r.trust + r.reliability) / 3), 0) / userReviews.length;
-      
-      setSystemUsers(prevUsers => {
-        return prevUsers.map(sysUser => {
-          if (sysUser.username === targetUsername) {
-            const newReputationScore = Math.min(100, Math.round(avgReviewScore * 10));
-            const newPoofieScore = sysUser.contentScore + newReputationScore;
-            return {
-              ...sysUser,
-              reputationScore: newReputationScore,
-              poofieScore: newPoofieScore
-            };
-          }
-          return sysUser;
-        });
-      });
-
-      if (targetUsername === userProfile?.username) {
-        setUserProfile(prev => {
-          const newReputationScore = Math.min(100, Math.round(avgReviewScore * 10));
-          const newPoofieScore = prev.contentScore + newReputationScore;
-          return {
-            ...prev,
-            reputationScore: newReputationScore,
-            poofieScore: newPoofieScore
-          };
-        });
-      }
-
-      setTxLoading(false);
-      setTxStep('');
-
-      if (!customRaterName) {
-        addXP(100, `Submitted reputation review for @${targetUsername}`);
-        addNotification('success', `Reputation review for @${targetUsername} submitted!`, 'View Reputation', 'profile', { username: targetUsername });
-        navigate('profile', { username: targetUsername });
-      }
-    } catch (e) {
-      console.error(e);
-      setTxLoading(false);
-      setTxStep('');
-      alert('Reputation submission failed: ' + e.message);
-    }
-  };
-
-  // Submit profile endorsement
-  const handleEndorseUser = async (targetUsername, reason, relationship, customEndorser = null) => {
-    if (!userProfile && !customEndorser) return;
-
-    const endorserName = customEndorser?.name || userProfile.name;
-    const endorserUsername = customEndorser?.username || userProfile.username;
-
-    try {
-      setTxLoading(true);
-      setTxStep('Generating cryptographically signed endorsement attestation...');
-      if (!customEndorser) {
-        await web3Mock.personalSign(wallet.address, `Endorse @${targetUsername}: ${reason}`);
-      }
-
-      setTxStep('Broadcasting transaction to Sepolia EndorsementRegistry...');
-      const tx = await web3Mock.sendEVMTransaction(
-        wallet.address,
-        '0xpoofieendorsementregistry',
-        `endorseUser("${targetUsername}")`
-      );
-
-      const newEndorsement = {
-        endorserName,
-        endorserUsername,
-        relation: relationship,
-        reason,
-        txHash: tx.txHash
-      };
-
-      setEndorsements(prev => ({
-        ...prev,
-        [targetUsername]: [newEndorsement, ...(prev[targetUsername] || [])]
-      }));
-
-      setTxLoading(false);
-      setTxStep('');
-
-      if (!customEndorser) {
-        addXP(80, `Endorsed @${targetUsername}`);
-        addNotification('success', `You have endorsed @${targetUsername}!`, 'View Profile', 'profile', { username: targetUsername });
-        navigate('profile', { username: targetUsername });
-      }
-    } catch (e) {
-      console.error(e);
-      setTxLoading(false);
-      setTxStep('');
-      alert('Endorsement failed: ' + e.message);
-    }
-  };
-
-  // Simulate 3 incoming professional endorsements
-  const simulateEndorsementsForMe = () => {
+  // Join a new Clan
+  const handleJoinClan = (clanName) => {
     if (!userProfile) return;
+    if (userProfile.joinedClans.includes(clanName)) {
+      alert(`You are already a member of the ${clanName} clan!`);
+      return;
+    }
+    setUserProfile(prev => ({
+      ...prev,
+      joinedClans: [...prev.joinedClans, clanName]
+    }));
+    addXP(100, `Joined Clan: ${clanName}`);
+    addNotification('success', `Welcome to the ${clanName} Clan! You have unlocked their discussions and resources.`);
+  };
+
+  // Apply / Send DNA Card to Opportunity Request
+  const handleApplyToOpportunity = (postId) => {
+    if (!userProfile) return;
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
 
     setTxLoading(true);
-    setTxStep('Simulating network validations...');
+    setTxStep('Generating cryptographically verified Developer DNA Card...');
 
     setTimeout(() => {
-      const mockAliceEndorsement = {
-        endorserName: 'Alice Vance',
-        endorserUsername: 'alice_v',
-        relation: 'Client',
-        reason: 'Consistently provides high-quality codebase setups and outstanding engineering precision.',
-        txHash: '0x32a188f6bdf188e7ae30d089b03f0b06bfeed8f9a918a28e72c0c'
-      };
-
-      const mockMarcusEndorsement = {
-        endorserName: 'Marcus K.',
-        endorserUsername: 'marcus_design',
-        relation: 'Collaborator',
-        reason: 'Exceptional professional with massive creative capacity and thorough reliability in complex deliverables.',
-        txHash: '0x8f9e0a1dd72d4c0b45fae8e895b309fd13c0ee72bdf492b45f448e895'
-      };
-
-      const mockElenaEndorsement = {
-        endorserName: 'Elena Rostova',
-        endorserUsername: 'elena_dev',
-        relation: 'Teammate',
-        reason: 'A critical asset to our project research. Brilliant execution under pressure.',
-        txHash: '0xbc7e3c9c29a6b4ef504c0dbbb77d2fa35eed406bfeedaa26f8d1c2'
-      };
-
-      setEndorsements(prev => ({
-        ...prev,
-        [userProfile.username]: [
-          mockAliceEndorsement,
-          mockMarcusEndorsement,
-          mockElenaEndorsement,
-          ...(prev[userProfile.username] || [])
-        ]
-      }));
-
       setTxLoading(false);
       setTxStep('');
-
-      addNotification('success', '📩 You received 3 endorsements from verified professionals!');
-      addXP(100, 'Received community endorsements');
-    }, 2000);
+      addXP(80, `Applied to: ${post.title}`);
+      addNotification('success', `Sent your Developer DNA Profile Card to @${post.creatorUsername}! Your skills, domain specialization, and DNA matches have been submitted.`);
+      
+      // Update local storage streak and award XP
+      setStreakCount(prev => prev + 1);
+    }, 1500);
   };
 
-  // Submit Professional Verification Application
-  const handleApplyForProfessional = async (profession, credentials, portfolioLinks) => {
-    if (!userProfile) return;
-    const userEndorsements = endorsements[userProfile.username] || [];
-
-    if (userEndorsements.length < 3) {
-      alert('You need a minimum of 3 endorsements from verified professionals to apply. Use the "Collaborator Hub" or click "Simulate Endorsements" to fulfill this requirement!');
-      return;
-    }
-
-    try {
-      setTxLoading(true);
-      setTxStep('Packaging professional dossier (credentials + proof of work)...');
-      const ipfsResult = await ipfsMock.uploadMetadata({
-        profession,
-        credentials,
-        portfolioLinks,
-        endorsements: userEndorsements
-      });
-
-      setTxStep('Submitting professional application to Sepolia Verifier DAO...');
-      await web3Mock.sendEVMTransaction(
-        wallet.address,
-        '0xpoofieverifierdao',
-        `applyProfessional("${ipfsResult.cid}")`
-      );
-
-      setTxStep('Minting Verified Professional Badge NFT ⭐...');
-      const mintResult = await web3Mock.mintVerificationBadge(wallet.address, 'professional');
-
-      setUserProfile(prev => ({
-        ...prev,
-        badges: {
-          ...prev.badges,
-          verifiedProfessional: true
-        },
-        poofieXP: prev.poofieXP + 800,
-        reputationScore: prev.reputationScore + 30,
-        poofieScore: prev.contentScore + prev.reputationScore + 30
-      }));
-
-      setTxLoading(false);
-      setTxStep('');
-
-      addNotification('success', `⭐ Verified Professional NFT minted on Sepolia! Explorer: ${shortenAddress(mintResult.txHash)}`);
-      navigate('profile', { username: userProfile.username });
-    } catch (e) {
-      console.error(e);
-      setTxLoading(false);
-      setTxStep('');
-      alert('Professional verification failed: ' + e.message);
-    }
-  };
-
-  // Toggle rating restriction simulation
-  const simulateLowScoreRestriction = (enable) => {
-    setLowScoreRestricted(enable);
-    if (enable) {
-      setUserProfile(prev => ({
-        ...prev,
-        poofieScore: 12
-      }));
-      addNotification('warning', '⚠️ Your Poofie Score fell below 20. Rating privileges restricted.');
-    } else {
-      setUserProfile(prev => ({
-        ...prev,
-        poofieScore: 45
-      }));
-      addNotification('success', '✅ Rating privileges restored! Poofie Score healthy.');
-    }
-  };
-
-  // Simulate daily check-in activity
+  // Complete a simulated quiz challenge or daily checkin
   const triggerDailyQuest = () => {
     if (!userProfile) return;
-    addXP(100, 'Completed daily on-chain identity check-in');
+    addXP(100, 'Completed daily sandbox check-in');
     setStreakCount(prev => prev + 1);
-    addNotification('success', '📅 Daily check-in complete! XP awarded.');
+    
+    // Add a cool modifier badge after a 3 day streak
+    if (streakCount >= 2 && !userProfile.badges.includes('Weekend Warrior ⚔️')) {
+      setUserProfile(prev => ({
+        ...prev,
+        badges: [...prev.badges, 'Weekend Warrior ⚔️']
+      }));
+      addNotification('milestone', '🏆 Streak Milestone! Unlocked the "Weekend Warrior ⚔️" Badge Modifier.');
+    } else {
+      addNotification('success', '📅 Daily developer streak updated!');
+    }
+  };
+
+  // Connect specific external platform profile
+  const handleConnectAccount = (platform, usernameVal) => {
+    if (!userProfile) return;
+    
+    let mockStats = {};
+    if (platform === 'github') {
+      mockStats = { connected: true, username: usernameVal || 'satoshi', repos: 18, stars: 45, contributions: 310 };
+    } else if (platform === 'leetcode') {
+      mockStats = { connected: true, username: usernameVal || 'satoshi_lc', solved: 210, contestRating: 1650 };
+    } else if (platform === 'devfolio') {
+      mockStats = { connected: true, username: usernameVal || 'satoshidev', hackathons: 4, awards: 1 };
+    } else if (platform === 'linkedin') {
+      mockStats = { connected: true, username: usernameVal || 'satoshi-nakamoto' };
+    }
+
+    setUserProfile(prev => ({
+      ...prev,
+      connectedAccounts: {
+        ...prev.connectedAccounts,
+        [platform]: mockStats
+      }
+    }));
+
+    addNotification('success', `Connected external profile: ${platform.toUpperCase()} (@${usernameVal})`);
   };
 
   return (
@@ -951,32 +613,25 @@ export const AppProvider = ({ children }) => {
       wallet,
       userProfile,
       systemUsers,
-      reputationReviews,
-      endorsements,
       posts,
       notifications,
       txLoading,
       ipfsLoading,
       txStep,
-      lowScoreRestricted,
       streakCount,
-      SCORE_THRESHOLD,
-      isSepoliaNetwork,
       navigate,
       handleConnectWallet,
       handleDisconnect,
       handleClearDatabase,
       handleAuthVerify,
-      handleCompleteOnboarding,
+      handleDNAQuizCompletion,
+      handleCompleteDomainSetup,
       handleCreatePost,
-      handleRateContent,
-      handleRateReputation,
-      handleEndorseUser,
-      simulateEndorsementsForMe,
-      handleApplyForProfessional,
-      simulateLowScoreRestriction,
+      triggerSandboxSwitch,
+      handleJoinClan,
+      handleApplyToOpportunity,
       triggerDailyQuest,
-      handleSwitchNetwork,
+      handleConnectAccount,
       addNotification,
       addXP
     }}>
