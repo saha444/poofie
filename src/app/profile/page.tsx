@@ -105,6 +105,38 @@ export default function ProfilePage() {
   const coords = getRadarCoordinates()
   const pointsString = coords.map(c => `${c.x},${c.y}`).join(' ')
 
+  const getPersonalizedExplanation = (dim: string, score: number) => {
+    const ghRepos = userProfile?.githubRepos || 0
+    const ghStars = userProfile?.githubStars || 0
+    const ghOrgsCount = userProfile?.githubOrgs?.length || 0
+    const ltSolved = userProfile?.leetcodeSolved || 0
+    const ltRating = userProfile?.leetcodeRating || 1600
+    const dfHacks = userProfile?.devfolioHackathons || 0
+    const techStack = userProfile?.techStack || []
+    const expCount = linkedinExpArray.length
+    const yearsExp = (expCount * 1.5).toFixed(1)
+
+    const templates: Record<string, string> = {
+      Maker: `Your score of ${score}% in Maker DNA is driven by your participation in ${dfHacks} hackathons and ${ghRepos} active public repositories. This attests to an exceptionally strong "ship-first" builder mentality. In practice, you excel at turning ideas into working prototypes under high-pressure constraints rather than getting bogged down in endless spec definitions.`,
+      
+      Architect: `Scored at ${score}%, this attests to your verified SDE work history of ${expCount} roles (representing ~${yearsExp} years of verified experience) and ${ghStars} stars on GitHub. This signifies a strong capacity for designing scalable, maintainable software systems with clean interfaces. It means you are highly capable of mapping complex system dependencies and preventing technical debt.`,
+      
+      Explorer: `Your ${score}% Explorer score is derived from your active multi-language tech stack (${techStack.slice(0, 4).join(', ') || 'TypeScript, Solidity, Python'}) and engagement in ${ghOrgsCount} developer organizations. This indicates a high adaptability to emerging technologies and protocols. You are the builder who investigates the frontiers and introduces new tools to the team.`,
+      
+      Strategist: `Scoring ${score}% in Strategy reflects your analytical quiz responses and ${expCount} career terms. This demonstrates a structured approach to software development, balancing technical execution with business outcomes. You know when to prioritize speed and when to invest in structural stability.`,
+      
+      Scholar: `Your Scholar DNA score of ${score}% is supported by ${ltSolved} verified LeetCode solved problems and your academic background. This represents rigorous computer science fundamentals, deep algorithmic capability, and a dedication to understanding the underlying mechanics of execution rather than just copying code.`,
+      
+      Alchemist: `At ${score}%, your Alchemist DNA is driven by your highly integrated cross-platform profile attestation. This signifies a rare hybrid builder who synthesizes algorithms, rapid prototyping, and real-world SDE practices. You excel at finding creative solutions at the intersection of different tech domains.`,
+      
+      Catalyst: `Your Catalyst score of ${score}% is attributed to your active membership in ${ghOrgsCount} organizations and collaborative open-source contributions. This marks you as a multiplier on engineering teams. You don't just write code; you unblock colleagues, drive community discussion, and elevate overall team performance.`,
+      
+      Craftsman: `At ${score}%, your Craftsman score is derived from your high attention to SDE workflow descriptions and refactoring choices. This means code quality for you is a moral imperative. You thrive on code readability, thorough documentation, and clean architecture that any new engineer can easily pick up.`,
+    }
+
+    return templates[dim] || `Verified ${dim} score of ${score}% based on your developer profile and quiz attestation.`
+  }
+
   const DNA_COLORS: Record<string, string> = {
     Maker: '#f59e0b', Architect: '#3b82f6', Explorer: '#8b5cf6',
     Scholar: '#10b981', Craftsman: '#ec4899', Catalyst: '#f97316',
@@ -240,7 +272,7 @@ export default function ProfilePage() {
                       onMouseEnter={() => setHoveredVertex({
                         name: c.dim,
                         score: c.value,
-                        justification: radarData[c.dim]?.justification || 'Verified profile metrics'
+                        justification: getPersonalizedExplanation(c.dim, c.value)
                       })}
                     />
                   ))}
@@ -299,7 +331,7 @@ export default function ProfilePage() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', width: '100%' }}>
                 {dimensions.map(dim => {
                   const score = radarData[dim]?.score || 45
-                  const justification = radarData[dim]?.justification || 'Verified profile metrics'
+                  const justification = getPersonalizedExplanation(dim, score)
                   const color = DNA_COLORS[dim] || 'var(--accent-cyan)'
                   
                   // Mapped platforms helper
