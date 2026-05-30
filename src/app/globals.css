@@ -827,6 +827,115 @@ body.landing-active main {
   z-index: 2; /* Renders in front of the pin, overlapping it cleanly */
 }
 
+/* ==========================================
+   OTHER PAGES AESTHETICS (HIGH-CONTRAST B&W)
+   ========================================== */
+body:not(.landing-active) {
+  background-color: #000000 !important;
+  background-image: none !important;
+  color: #ffffff !important;
+  
+  /* Reset design tokens to pure black & white */
+  --bg-deep: #000000;
+  --bg-surface: #000000;
+  --bg-card: #000000;
+  --bg-hover: #18181b;
+  --text-main: #ffffff;
+  --text-muted: #e4e4e7;
+  --text-dim: #a1a1aa;
+  --border-light: rgba(255, 255, 255, 0.2);
+  --border-glow: rgba(255, 255, 255, 0.25);
+  --shadow-glow: none;
+  --shadow-purple-glow: none;
+}
+
+/* Boxes/Containers covered with a thin white rounded border and solid black background */
+body:not(.landing-active) .glass-panel,
+body:not(.landing-active) .glass-panel:hover {
+  background: #000000 !important;
+  background-color: #000000 !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Primary buttons should be solid white with black text */
+body:not(.landing-active) .btn-primary {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  font-family: var(--font-heading) !important;
+  font-weight: 700 !important;
+  border: 1px solid #ffffff !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+body:not(.landing-active) .btn-primary:hover {
+  background: #e4e4e7 !important;
+  background-color: #e4e4e7 !important;
+  border-color: #e4e4e7 !important;
+  color: #000000 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Secondary buttons should be black background with thin white border and white text */
+body:not(.landing-active) .btn-secondary {
+  background: #000000 !important;
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+
+body:not(.landing-active) .btn-secondary:hover {
+  background: #18181b !important;
+  background-color: #18181b !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  color: #ffffff !important;
+}
+
+/* Standard Inputs & Text Fields overrides */
+body:not(.landing-active) .input-field {
+  background: #000000 !important;
+  background-color: #000000 !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+}
+
+body:not(.landing-active) .input-field:focus {
+  border-color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+/* Force all text fields and labels in dashboard subpages to pure white */
+body:not(.landing-active) h1,
+body:not(.landing-active) h2,
+body:not(.landing-active) h3,
+body:not(.landing-active) h4,
+body:not(.landing-active) h5,
+body:not(.landing-active) h6,
+body:not(.landing-active) p,
+body:not(.landing-active) span,
+body:not(.landing-active) li,
+body:not(.landing-active) label,
+body:not(.landing-active) div:not(.badge-tag):not(.toggle-container):not(.toggle-handle-wrapper):not(.toggle-handle):not(.toggle-handle-knob):not(.toggle-handle-bar-wrapper):not(.toggle-handle-bar):not(.toggle-base):not(.toggle-base-inside) {
+  color: #ffffff !important;
+}
+
+/* Reset badge border lines to clean thin monochrome borders */
+body:not(.landing-active) .badge-tag {
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+
+
 
 
 

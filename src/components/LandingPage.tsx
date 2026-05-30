@@ -19,9 +19,17 @@ export default function LandingPage() {
   const [isDark, setIsDark] = useState(true)
 
   useEffect(() => {
+    // Add landing-active class to body on mount
+    document.body.classList.add('landing-active')
+
     // Check initial dark mode state
     const hasDark = document.documentElement.classList.contains('dark')
     setIsDark(hasDark)
+
+    return () => {
+      // Clean up class on unmount
+      document.body.classList.remove('landing-active')
+    }
   }, [])
 
   const toggleTheme = () => {
