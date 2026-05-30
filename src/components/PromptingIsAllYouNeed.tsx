@@ -2,11 +2,11 @@
 
 import { useEffect, useRef } from "react"
 
-const COLOR = "rgba(0, 242, 254, 0.15)" // Glowing cyber-cyan subtle letters
-const HIT_COLOR = "rgba(255, 255, 255, 0.015)" // Faded out hit state
-const BACKGROUND_COLOR = "#030305" // Clean dark theme background
-const BALL_COLOR = "#00f2fe" // Bright cyan neon ball
-const PADDLE_COLOR = "rgba(155, 81, 224, 0.4)" // Soft purple neon paddles
+const COLOR = "#333333" // Dark grey for unhit pixel blocks
+const HIT_COLOR = "#FFFFFF" // Bright white for hit/active pixel blocks
+const BACKGROUND_COLOR = "#000000" // Pure black background
+const BALL_COLOR = "#FFFFFF" // Crisp white ball
+const PADDLE_COLOR = "#FFFFFF" // Crisp white paddles
 const LETTER_SPACING = 1
 const WORD_SPACING = 3
 
@@ -375,19 +375,25 @@ export function PromptingIsAllYouNeed() {
 
       pixelsRef.current.forEach((pixel) => {
         if (
-          !pixel.hit &&
           ball.x + ball.radius > pixel.x &&
           ball.x - ball.radius < pixel.x + pixel.size &&
           ball.y + ball.radius > pixel.y &&
           ball.y - ball.radius < pixel.y + pixel.size
         ) {
-          pixel.hit = true
           const centerX = pixel.x + pixel.size / 2
           const centerY = pixel.y + pixel.size / 2
-          if (Math.abs(ball.x - centerX) > Math.abs(ball.y - centerY)) {
-            ball.dx = -ball.dx
-          } else {
-            ball.dy = -ball.dy
+
+          // Physics safety direction check to prevent double collisions inside the same pixel
+          const isMovingTowardsX = (ball.x < centerX && ball.dx > 0) || (ball.x > centerX && ball.dx < 0)
+          const isMovingTowardsY = (ball.y < centerY && ball.dy > 0) || (ball.y > centerY && ball.dy < 0)
+
+          if (isMovingTowardsX || isMovingTowardsY) {
+            pixel.hit = !pixel.hit // Toggle state: shifts from grey to white and vice versa!
+            if (Math.abs(ball.x - centerX) > Math.abs(ball.y - centerY)) {
+              ball.dx = -ball.dx
+            } else {
+              ball.dy = -ball.dy
+            }
           }
         }
       })
