@@ -12,6 +12,11 @@ export default function ConnectAccountsPage() {
   const [githubLoading, setGithubLoading] = useState(false)
   const [githubError, setGithubError] = useState('')
 
+  const [linkedinUrl, setLinkedinUrl] = useState('')
+  const [linkedinData, setLinkedinData] = useState<any>(null)
+  const [linkedinLoading, setLinkedinLoading] = useState(false)
+  const [linkedinError, setLinkedinError] = useState('')
+
   const [leetcodeUsername, setLeetcodeUsername] = useState('')
   const [leetcodeData, setLeetcodeData] = useState<any>(null)
   const [leetcodeLoading, setLeetcodeLoading] = useState(false)
@@ -45,6 +50,26 @@ export default function ConnectAccountsPage() {
       setGithubError(e.message || 'Failed to connect GitHub')
     } finally {
       setGithubLoading(false)
+    }
+  }
+
+  const connectLinkedIn = async () => {
+    if (!linkedinUrl.trim()) return
+    setLinkedinLoading(true)
+    setLinkedinError('')
+    try {
+      const res = await fetch('/api/integrations/linkedin/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profileUrl: linkedinUrl.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setLinkedinData(data.data)
+    } catch (e: any) {
+      setLinkedinError(e.message || 'Failed to connect LinkedIn')
+    } finally {
+      setLinkedinLoading(false)
     }
   }
 
@@ -101,7 +126,7 @@ export default function ConnectAccountsPage() {
             Link your developer profiles
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '8px', lineHeight: '1.6' }}>
-            We fetch real data from these platforms to build your Developer DNA and Proof Index.
+            We fetch real data from these platforms to build your Developer DNA, Work History, and Skill Radar Map.
           </p>
         </div>
 
@@ -110,13 +135,40 @@ export default function ConnectAccountsPage() {
           <IntegrationCard
             name="GitHub"
             icon="⬛"
-            description="Repos, languages, stars, contributions"
+            description="Repos, languages, stars, organizations"
             status={githubLoading ? 'loading' : githubData ? 'connected' : githubError ? 'error' : 'pending'}
-            connectedData={githubData ? `@${githubData.username} · ${githubData.repos} repos · ${githubData.stars} stars · ${githubData.topLanguages?.slice(0,3).join(', ')}` : undefined}
+            connectedData={githubData ? `@${githubData.username} · ${githubData.repos} repos · ${githubData.stars} stars · ${githubData.organizations?.length || 0} orgs` : undefined}
             error={githubError}
             onRetry={connectGitHub}
             autoConnected
           />
+
+          {/* LinkedIn Experience */}
+          <IntegrationCard
+            name="LinkedIn"
+            icon="🔵"
+            description="Experience, education (student/filler roles filtered out)"
+            status={linkedinLoading ? 'loading' : linkedinData ? 'connected' : linkedinError ? 'error' : 'idle'}
+            connectedData={linkedinData ? `Connected · ${linkedinData.experience?.length || 0} verified roles · ${linkedinData.discardedCount || 0} fillers filtered` : undefined}
+            error={linkedinError}
+          >
+            {!linkedinData && (
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <input
+                  type="url"
+                  placeholder="Paste LinkedIn Profile URL"
+                  value={linkedinUrl}
+                  onChange={e => setLinkedinUrl(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && connectLinkedIn()}
+                  className="input-field"
+                  style={{ flex: 1 }}
+                />
+                <button onClick={connectLinkedIn} disabled={linkedinLoading || !linkedinUrl} className="btn-secondary" style={{ whiteSpace: 'nowrap' }}>
+                  Connect
+                </button>
+              </div>
+            )}
+          </IntegrationCard>
 
           {/* LeetCode */}
           <IntegrationCard

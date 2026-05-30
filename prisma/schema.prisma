@@ -102,6 +102,13 @@ model Profile {
   devfolioHackathons Int?
 
   linkedinUrl       String?
+  linkedinExperience Json?
+  linkedinEducation  Json?
+
+  githubOrgs        String[]
+  radarScores       Json?
+  preferredTech     String[]
+  domainsHighlight  String[]
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

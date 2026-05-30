@@ -43,6 +43,11 @@ export async function POST() {
   )
   const repos: any[] = reposRes.ok ? await reposRes.json() : []
 
+  // Fetch organizations
+  const orgsRes = await fetch('https://api.github.com/user/orgs', { headers })
+  const orgs: any[] = orgsRes.ok ? await orgsRes.json() : []
+  const orgNames = orgs.map((o: any) => o.login)
+
   // Aggregate languages from repos
   const languageCounts: Record<string, number> = {}
   for (const repo of repos) {
@@ -78,6 +83,8 @@ export async function POST() {
       githubContribs: ghUser.public_gists || 0,
       githubLanguages: languageCounts,
       techStack: topLanguages,
+      githubOrgs: orgNames,
+      preferredTech: topLanguages.slice(0, 3), // Default preferred tech based on top languages
     },
     update: {
       githubUsername: ghUser.login,
@@ -85,6 +92,7 @@ export async function POST() {
       githubStars: totalStars,
       githubLanguages: languageCounts,
       techStack: topLanguages,
+      githubOrgs: orgNames,
       bio: ghUser.bio || undefined,
       avatarUrl: ghUser.avatar_url || undefined,
     },
@@ -108,6 +116,7 @@ export async function POST() {
       repos: repos.length,
       stars: totalStars,
       topLanguages,
+      organizations: orgNames,
     },
   })
 }
