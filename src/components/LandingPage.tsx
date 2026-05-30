@@ -178,18 +178,6 @@ export default function LandingPage() {
             <div className="toggle-base-inside"></div>
           </div>
         </div>
-        
-        <div style={{ 
-          marginTop: '20px', 
-          fontSize: '0.65rem', 
-          color: isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(24, 24, 27, 0.45)', 
-          letterSpacing: '0.15em', 
-          fontFamily: 'monospace', 
-          textTransform: 'uppercase',
-          transition: 'color 0.3s ease'
-        }}>
-          🔒 Verified Attestation Engine
-        </div>
       </div>
 
     </main>
