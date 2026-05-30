@@ -26,6 +26,23 @@
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Light Theme Variables */
+html:not(.dark) {
+  --bg-deep: #f8fafc;
+  --bg-surface: rgba(255, 255, 255, 0.75);
+  --bg-card: rgba(241, 245, 249, 0.85);
+  --bg-hover: rgba(226, 232, 240, 0.9);
+  
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-dim: #94a3b8;
+  
+  --border-glow: rgba(59, 130, 246, 0.15);
+  --border-light: rgba(15, 23, 42, 0.06);
+  --shadow-glow: 0 10px 30px rgba(59, 130, 246, 0.06);
+  --shadow-purple-glow: 0 10px 30px rgba(155, 81, 224, 0.05);
+}
+
 /* Base Styles */
 * {
   box-sizing: border-box;
@@ -42,6 +59,34 @@ body {
     radial-gradient(circle at 10% 20%, rgba(155, 81, 224, 0.05) 0%, transparent 40%),
     radial-gradient(circle at 90% 80%, rgba(0, 242, 254, 0.05) 0%, transparent 40%);
   background-attachment: fixed;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Light theme specific body gradient overrides */
+html:not(.dark) body {
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(155, 81, 224, 0.03) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.03) 0%, transparent 40%) !important;
+}
+
+/* Light theme input-fields glassmorphism overrides */
+html:not(.dark) .input-field {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  color: #0f172a !important;
+}
+
+html:not(.dark) .input-field:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Light theme landing active body overrides */
+html:not(.dark) body.landing-active {
+  background-color: #f8fafc !important;
+}
+html:not(.dark) body.landing-active .app-container {
+  background-color: #f8fafc !important;
 }
 
 /* Custom Scrollbar */
