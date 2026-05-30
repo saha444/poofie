@@ -163,12 +163,17 @@ interface Paddle {
   isVertical: boolean
 }
 
-export function PromptingIsAllYouNeed() {
+export function PromptingIsAllYouNeed({ isDark = true }: { isDark?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const pixelsRef = useRef<Pixel[]>([])
   const ballRef = useRef<Ball>({ x: 0, y: 0, dx: 0, dy: 0, radius: 0 })
   const paddlesRef = useRef<Paddle[]>([])
   const scaleRef = useRef(1)
+  
+  const isDarkRef = useRef(isDark)
+  useEffect(() => {
+    isDarkRef.current = isDark
+  }, [isDark])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -413,20 +418,26 @@ export function PromptingIsAllYouNeed() {
     const drawGame = () => {
       if (!ctx) return
 
-      ctx.fillStyle = BACKGROUND_COLOR
+      const bg = isDarkRef.current ? "#000000" : "#ffffff"
+      const pixelDefault = isDarkRef.current ? "#333333" : "#e2e8f0"
+      const pixelHit = isDarkRef.current ? "#ffffff" : "#0f172a"
+      const ball = isDarkRef.current ? "#ffffff" : "#0f172a"
+      const paddle = isDarkRef.current ? "#ffffff" : "#0f172a"
+
+      ctx.fillStyle = bg
       ctx.fillRect(0, 0, canvas.width, canvas.height)
 
       pixelsRef.current.forEach((pixel) => {
-        ctx.fillStyle = pixel.hit ? HIT_COLOR : COLOR
+        ctx.fillStyle = pixel.hit ? pixelHit : pixelDefault
         ctx.fillRect(pixel.x, pixel.y, pixel.size, pixel.size)
       })
 
-      ctx.fillStyle = BALL_COLOR
+      ctx.fillStyle = ball
       ctx.beginPath()
       ctx.arc(ballRef.current.x, ballRef.current.y, ballRef.current.radius, 0, Math.PI * 2)
       ctx.fill()
 
-      ctx.fillStyle = PADDLE_COLOR
+      ctx.fillStyle = paddle
       paddlesRef.current.forEach((paddle) => {
         ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height)
       })
