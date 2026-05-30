@@ -283,11 +283,11 @@ export function PromptingIsAllYouNeed() {
         y: ballStartY,
         dx: -BALL_SPEED,
         dy: BALL_SPEED,
-        radius: adjustedLargePixelSize / 2,
+        radius: adjustedLargePixelSize * 1.3, // Double ball size for high visibility and hit area
       }
 
-      const paddleWidth = adjustedLargePixelSize
-      const paddleLength = 10 * adjustedLargePixelSize
+      const paddleWidth = adjustedLargePixelSize * 1.5 // Thicker, more prominent bars
+      const paddleLength = 22 * adjustedLargePixelSize // Longer paddles for high screen coverage
 
       paddlesRef.current = [
         {
