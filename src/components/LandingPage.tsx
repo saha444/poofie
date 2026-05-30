@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import PromptingIsAllYouNeed from './PromptingIsAllYouNeed'
-import { SparklesText } from './SparklesText'
+import { TextScramble } from './TextScramble'
 
 export default function LandingPage() {
   const [isFlipped, setIsFlipped] = useState(false)
@@ -12,7 +12,7 @@ export default function LandingPage() {
   return (
     <main style={{ width: '100%', minHeight: '100vh', background: '#030305', position: 'relative', overflow: 'hidden' }}>
       
-      {/* Sparkles Brand Text positioned directly above the pixel game */}
+      {/* TextScramble Brand Text positioned directly above the pixel game */}
       <div style={{
         position: 'absolute',
         top: '25%',
@@ -21,13 +21,19 @@ export default function LandingPage() {
         zIndex: 10,
         textAlign: 'center'
       }}>
-        <SparklesText 
-          text="poofie" 
-          className="text-5xl md:text-7xl font-extrabold tracking-widest text-white uppercase"
-          colors={{ first: '#00f2fe', second: '#9b51e0' }}
-          sparklesCount={12}
-        />
+        <TextScramble
+          className="text-4xl md:text-5xl font-black text-white"
+          style={{
+            fontFamily: 'monospace',
+            textTransform: 'uppercase',
+            letterSpacing: '0.25em',
+            textShadow: '0 0 15px rgba(255, 255, 255, 0.15)'
+          }}
+        >
+          poofie
+        </TextScramble>
       </div>
+
 
       {/* Background Interactive Retro Game displaying YOUR DEV ATTRIBUTIONS / AT ONE PLACE */}
       <PromptingIsAllYouNeed />
