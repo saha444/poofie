@@ -1,0 +1,325 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Auth.js v4 Compatible Models
+model User {
+  id                 String          @id @default(cuid())
+  name               String?
+  email              String?         @unique
+  emailVerified      DateTime?
+  image              String?
+  onboardingComplete Boolean         @default(false)
+  accounts           Account[]
+  sessions           Session[]
+  profile            Profile?
+  quizResponse       QuizResponse?
+  dnaResult          DNAResult?
+  clans              ClanMember[]
+  posts              Post[]
+  comments           Comment[]
+  likes              Like[]
+  leagues            LeagueMember[]
+  opportunities      OpportunityMember[]
+  sentCollabs        Connection[]    @relation("Sender")
+  recvCollabs        Connection[]    @relation("Receiver")
+  messages           Message[]
+  notifications      Notification[]
+
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Core Profile Domain
+model Profile {
+  id             String       @id @default(cuid())
+  userId         String       @unique
+  username       String       @unique
+  bio            String?      @db.Text
+  avatarUrl      String?
+  specialization String?
+  proofIndex     Int          @default(0)
+  skills         Skill[]
+  domains        UserDomain[]
+  techStack      String[]
+  strengths      String[]
+  workStyle      String?
+  aiSummary      String?      @db.Text
+  interests      String[]     @default([])
+
+  // Integration stats (raw data from real APIs)
+  githubUsername    String?
+  githubRepos       Int?
+  githubStars       Int?
+  githubContribs    Int?
+  githubLanguages   Json?
+
+  leetcodeUsername  String?
+  leetcodeSolved    Int?
+  leetcodeRating    Int?
+  leetcodeBadges    String[]   @default([])
+
+  devfolioUsername  String?
+  devfolioHackathons Int?
+
+  linkedinUrl       String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Skill {
+  id              String   @id @default(cuid())
+  profileId       String
+  name            String
+  confidenceScore Int
+  sources         String[]
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model UserDomain {
+  id        String   @id @default(cuid())
+  profileId String
+  name      String
+  joinedAt  DateTime @default(now())
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+// Developer DNA Domain
+model QuizResponse {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  answers   Json
+  completed Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DNAResult {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  primaryType   String
+  secondaryType String
+  traitScores   Json
+  explanation   String   @db.Text
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Community & Clans
+model Clan {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  description String       @db.Text
+  avatarUrl   String?
+  category    String
+  members     ClanMember[]
+  posts       Post[]
+  resources   Resource[]
+  events      Event[]
+
+  createdAt DateTime @default(now())
+}
+
+model ClanMember {
+  id       String   @id @default(cuid())
+  clanId   String
+  userId   String
+  role     String   @default("MEMBER")
+  joinedAt DateTime @default(now())
+
+  clan Clan @relation(fields: [clanId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([clanId, userId])
+}
+
+model Resource {
+  id       String @id @default(cuid())
+  clanId   String
+  title    String
+  url      String
+  sharedBy String
+
+  clan Clan @relation(fields: [clanId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  clanId      String
+  title       String
+  description String   @db.Text
+  eventDate   DateTime
+
+  clan Clan @relation(fields: [clanId], references: [id], onDelete: Cascade)
+}
+
+// Center Feed
+model Post {
+  id        String    @id @default(cuid())
+  userId    String
+  clanId    String?
+  content   String    @db.Text
+  title     String?
+  category  String    @default("COMMUNITY")
+  mediaUrl  String?
+  comments  Comment[]
+  likes     Like[]
+  createdAt DateTime  @default(now())
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clan Clan? @relation(fields: [clanId], references: [id], onDelete: SetNull)
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+}
+
+// Opportunities
+model Opportunity {
+  id          String              @id @default(cuid())
+  title       String
+  description String              @db.Text
+  category    String
+  skills      String[]
+  ownerId     String
+  members     OpportunityMember[]
+  createdAt   DateTime            @default(now())
+}
+
+model OpportunityMember {
+  id            String   @id @default(cuid())
+  opportunityId String
+  userId        String
+  joinedAt      DateTime @default(now())
+
+  opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([opportunityId, userId])
+}
+
+// Leagues & Badges
+model League {
+  id      String         @id @default(cuid())
+  name    String         @unique
+  minXp   Int
+  members LeagueMember[]
+}
+
+model LeagueMember {
+  id       String @id @default(cuid())
+  leagueId String
+  userId   String
+  xp       Int    @default(0)
+  level    Int    @default(1)
+
+  league League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([leagueId, userId])
+}
+
+model Badge {
+  id          String @id @default(cuid())
+  name        String @unique
+  description String
+  imageUrl    String
+}
+
+// Social Connection & Tribe Discovery
+model Connection {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  status     String   @default("PENDING")
+  score      Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  sender   User @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  content    String   @db.Text
+  sentAt     DateTime @default(now())
+
+  sender User @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  content   String   @db.Text
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

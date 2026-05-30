@@ -162,42 +162,52 @@ export const AppProvider = ({ children }) => {
   const [activeView, setActiveView] = useState('landing');
   const [viewParams, setViewParams] = useState({});
 
+  // Helper to safely access localStorage on the server during Next.js SSR
+  const getSafeStorage = (key, defaultValue) => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(key);
+      if (saved !== null) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          return saved;
+        }
+      }
+    }
+    return defaultValue;
+  };
+
   // Session Authentication State (No Web3)
   const [session, setSession] = useState(() => {
-    const saved = localStorage.getItem('poofie_session');
-    return saved ? JSON.parse(saved) : { authenticated: false, email: '' };
+    return getSafeStorage('poofie_session', { authenticated: false, email: '' });
   });
 
   // User Profile
   const [userProfile, setUserProfile] = useState(() => {
-    const saved = localStorage.getItem('poofie_userProfile');
-    return saved ? JSON.parse(saved) : null;
+    return getSafeStorage('poofie_userProfile', null);
   });
 
   // System Users
   const [systemUsers, setSystemUsers] = useState(() => {
-    const saved = localStorage.getItem('poofie_systemUsers');
-    return saved ? JSON.parse(saved) : MOCK_DEVELOPERS;
+    return getSafeStorage('poofie_systemUsers', MOCK_DEVELOPERS);
   });
 
   // Posts Feed
   const [posts, setPosts] = useState(() => {
-    const saved = localStorage.getItem('poofie_posts');
-    return saved ? JSON.parse(saved) : INITIAL_POSTS;
+    return getSafeStorage('poofie_posts', INITIAL_POSTS);
   });
 
   // Notifications
   const [notifications, setNotifications] = useState(() => {
-    const saved = localStorage.getItem('poofie_notifications');
-    return saved ? JSON.parse(saved) : [
+    return getSafeStorage('poofie_notifications', [
       { id: 'notif-1', type: 'system', message: 'Welcome to Poofie Sandbox! Discover your unique Developer DNA.', timestamp: Date.now() }
-    ];
+    ]);
   });
 
   // Streak Count
   const [streakCount, setStreakCount] = useState(() => {
-    const saved = localStorage.getItem('poofie_streakCount');
-    return saved ? parseInt(saved) : 0;
+    const val = getSafeStorage('poofie_streakCount', '0');
+    return parseInt(val) || 0;
   });
 
   const [txLoading, setTxLoading] = useState(false);
@@ -321,7 +331,7 @@ export const AppProvider = ({ children }) => {
 
   // Email/Phone credentials claimed
   const handleAuthVerify = (emailVal, phoneVal, usernameInput) => {
-    setSession({ authenticated: false, email: emailVal });
+    setSession({ authenticated: true, email: emailVal });
     
     const newProfile = {
       name: usernameInput.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
@@ -334,7 +344,7 @@ export const AppProvider = ({ children }) => {
       level: 1,
       dnaType: '',
       secondaryDnaType: '',
-      traitScores: { Builder: 0, Explorer: 0, Strategist: 0, Architect: 0, Scholar: 0, Catalyst: 0, Craftsman: 0, Alchemist: 0 },
+      traitScores: { Maker: 0, Architect: 0, Explorer: 0, Scholar: 0, Craftsman: 0, Catalyst: 0 },
       domains: [],
       specialization: '',
       clan: '',
@@ -389,14 +399,12 @@ export const AppProvider = ({ children }) => {
     const sortedTraits = Object.entries(traitScores).sort((a, b) => b[1] - a[1]);
     
     const traitToDna = {
-      Builder: 'Maker',
+      Maker: 'Maker',
       Architect: 'Architect',
       Explorer: 'Explorer',
-      Strategist: 'Strategist',
       Scholar: 'Scholar',
-      Alchemist: 'Alchemist',
-      Catalyst: 'Catalyst',
-      Craftsman: 'Craftsman'
+      Craftsman: 'Craftsman',
+      Catalyst: 'Catalyst'
     };
 
     const primaryTrait = sortedTraits[0][0];
@@ -451,6 +459,8 @@ export const AppProvider = ({ children }) => {
       return updated;
     });
 
+    // Ensure session is marked authenticated regardless of whether platform was connected
+    setSession(prev => ({ ...prev, authenticated: true }));
     addNotification('success', `Completed onboarding! Welcome to the ${clanToJoin} Clan!`);
     navigate('feed');
   };

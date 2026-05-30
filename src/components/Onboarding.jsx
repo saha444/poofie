@@ -22,7 +22,7 @@ const AVAILABLE_INTERESTS = [
 ];
 
 export default function Onboarding() {
-  const { userProfile, handleCompleteOnboarding } = useApp();
+  const { userProfile, navigate } = useApp();
 
   const [step, setStep] = useState(1); // 1: Profile, 2: Skills, 3: Portfolios, 4: Interests
   const [name, setName] = useState(userProfile?.name || '');
@@ -60,14 +60,8 @@ export default function Onboarding() {
   };
 
   const handleSubmit = () => {
-    handleCompleteOnboarding({
-      name,
-      bio,
-      avatar,
-      skills: selectedSkills,
-      portfolio: { github, linkedin, dribbble, website },
-      interests: selectedInterests
-    });
+    // Navigate to feed — full onboarding is handled via LandingAndAuth
+    navigate('feed');
   };
 
   return (

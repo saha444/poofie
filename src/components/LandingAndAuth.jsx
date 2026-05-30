@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import FloatingIconsHero from './FloatingIconsHero';
 import { 
   Mail, 
   Smartphone, 
@@ -32,6 +33,18 @@ export default function LandingAndAuth() {
     systemUsers
   } = useApp();
 
+  // Manage seamless pitch-black background on guest landing mode
+  useEffect(() => {
+    if (activeView === 'landing') {
+      document.body.classList.add('landing-active');
+    } else {
+      document.body.classList.remove('landing-active');
+    }
+    return () => {
+      document.body.classList.remove('landing-active');
+    };
+  }, [activeView]);
+
   // Onboarding local state
   const [email, setEmail] = useState('');
   const [emailCode, setEmailCode] = useState('');
@@ -52,62 +65,99 @@ export default function LandingAndAuth() {
   // --- DNA QUIZ STATE ---
   const [currentDnaQ, setCurrentDnaQ] = useState(0);
   const [dnaAnswers, setDnaAnswers] = useState({
-    Builder: 0, Explorer: 0, Strategist: 0, Architect: 0, Scholar: 0, Catalyst: 0, Craftsman: 0, Alchemist: 0
+    Maker: 0, Architect: 0, Explorer: 0, Scholar: 0, Craftsman: 0, Catalyst: 0
   });
 
+  // Full 10-question spec — multi-trait scoring per answer
   const DNA_QUIZ_QUESTIONS = [
     {
-      q: "A cutting-edge technology or library just launched. What is your immediate reaction?",
+      q: "Your team just inherited a messy legacy codebase. What's your first move?",
       options: [
-        { text: "Open an editor, write a quick scratch script to test it out.", trait: "Builder", weight: 15 },
-        { text: "Deep dive into the architecture docs and understand how it works.", trait: "Scholar", weight: 15 },
-        { text: "Analyze benchmarks, gaseous cost, and compare it against stack alternatives.", trait: "Strategist", weight: 15 },
-        { text: "Scroll Github to see if any prominent open-source leaders have adopted it.", trait: "Explorer", weight: 15 }
+        { text: "Start running it, break things, understand through failure.", scores: { Maker: 2 } },
+        { text: "Map the entire architecture — draw diagrams, trace dependencies, then plan.", scores: { Architect: 2 } },
+        { text: "Google every unfamiliar pattern, read the original commit messages.", scores: { Scholar: 1, Explorer: 1 } },
+        { text: "Gather the original team, understand the intent before touching anything.", scores: { Catalyst: 2 } }
       ]
     },
     {
-      q: "What is your ultimate dream project style?",
+      q: "You have a free weekend with no obligations. What do you build?",
       options: [
-        { text: "An end-to-end functional prototype deployed live for immediate use.", trait: "Builder", weight: 15 },
-        { text: "A beautifully polished glassmorphic interface with perfect CSS animations.", trait: "Craftsman", weight: 15 },
-        { text: "A highly scalable microservice layout with clean asynchronous message queues.", trait: "Architect", weight: 15 },
-        { text: "An innovative, weird experiment that combines AI models with IoT hubs.", trait: "Alchemist", weight: 15 }
+        { text: "A working app — something live, users can interact with by Sunday.", scores: { Maker: 2 } },
+        { text: "A system I've always wanted to design properly — clean interfaces, solid contracts.", scores: { Architect: 2 } },
+        { text: "Whatever catches my eye — maybe a new language, a weird protocol, or a retro API.", scores: { Explorer: 2 } },
+        { text: "Nothing new — I refactor something old until it's genuinely beautiful.", scores: { Craftsman: 2 } }
       ]
     },
     {
-      q: "A critical bug is discovered in production! What is your debugging style?",
+      q: "What is your relationship with code reviews?",
       options: [
-        { text: "Meticulously trace the logs line-by-line, isolating variables systematically.", trait: "Craftsman", weight: 15 },
-        { text: "Read the source code libraries and search deep internal issues.", trait: "Scholar", weight: 15 },
-        { text: "Organize a war-room, pull in collaborators, and brainstorm options.", trait: "Catalyst", weight: 15 },
-        { text: "Hotfix it rapidly, deploy immediately, and optimize in the morning.", trait: "Builder", weight: 15 }
+        { text: "I give detailed, almost line-by-line feedback. Quality is moral.", scores: { Craftsman: 2 } },
+        { text: "I focus on architecture: Is this scalable? Will this break in 6 months?", scores: { Architect: 1, Scholar: 1 } },
+        { text: "I approve fast if it works. Iteration beats perfection.", scores: { Maker: 2 } },
+        { text: "I treat it as a teaching moment — I explain the 'why' not just the 'what'.", scores: { Catalyst: 2 } }
       ]
     },
     {
-      q: "Your squad enters a fast-paced 48-hour hackathon. What role do you naturally fall into?",
+      q: "A new paper drops: 'Transformer-Free Architecture Beats GPT-4 on Reasoning Benchmarks.' Your reaction?",
       options: [
-        { text: "The primary coder spinning up the repository and churning out features.", trait: "Builder", weight: 15 },
-        { text: "The creative thinker proposing crazy pivots and synthesizing custom APIs.", trait: "Alchemist", weight: 15 },
-        { text: "The master strategist designing the presentation, timeline, and competitive angle.", trait: "Strategist", weight: 15 },
-        { text: "The team coordinator keeping everyone fueled, inspired, and aligned.", trait: "Catalyst", weight: 15 }
+        { text: "Open the abstract, skim results, and replicate the benchmark by midnight.", scores: { Scholar: 2 } },
+        { text: "Fork the repo and start hacking immediately — production be damned.", scores: { Explorer: 1, Maker: 1 } },
+        { text: "Share it with your team with a 3-bullet summary of why it matters.", scores: { Catalyst: 2 } },
+        { text: "Bookmark it. Wait for someone smarter to validate it first.", scores: { Scholar: 1, Architect: 1 } }
       ]
     },
     {
-      q: "What keeps you coding late into the night, completely losing track of time?",
+      q: "You're three hours into a hackathon. The original idea isn't working. What happens?",
       options: [
-        { text: "Completing every single item on my roadmap checklist.", trait: "Builder", weight: 15 },
-        { text: "Polishing a layout to look perfectly pixel-aligned and responsive.", trait: "Craftsman", weight: 15 },
-        { text: "Cracking a highly complex algorithms problem with optimal complexity.", trait: "Strategist", weight: 15 },
-        { text: "Tinkering with an unfamiliar framework out of sheer curiosity.", trait: "Explorer", weight: 15 }
+        { text: "Pivot immediately. Ship something simpler that works.", scores: { Maker: 2 } },
+        { text: "Diagnose why it failed before any pivot — maybe it's solvable.", scores: { Architect: 1, Scholar: 1 } },
+        { text: "Get the team aligned. No pivot without shared clarity.", scores: { Catalyst: 2 } },
+        { text: "The pivot is the fun part — now we can try the crazy idea.", scores: { Explorer: 2 } }
       ]
     },
     {
-      q: "How do you prefer to expand your technical skills?",
+      q: "How do you feel about documentation?",
       options: [
-        { text: "Reading academic research papers, whitepapers, and thick books.", trait: "Scholar", weight: 15 },
-        { text: "Hacking on open scratch repos, trying things until they break.", trait: "Explorer", weight: 15 },
-        { text: "Deconstructing massive production architectures of tech giants.", trait: "Architect", weight: 15 },
-        { text: "Pair-programming and learning interactively alongside mentors.", trait: "Catalyst", weight: 15 }
+        { text: "I write docs before I write code. The interface is the spec.", scores: { Architect: 2 } },
+        { text: "I write docs after — they're a changelog, not a blueprint.", scores: { Maker: 1, Craftsman: 1 } },
+        { text: "I read docs obsessively — edge cases live there.", scores: { Scholar: 2 } },
+        { text: "I document so others don't get stuck where I did.", scores: { Catalyst: 2 } }
+      ]
+    },
+    {
+      q: "A junior dev on your team is consistently writing slow, unreadable code. What do you do?",
+      options: [
+        { text: "Sit down and pair-program with them — show, don't tell.", scores: { Catalyst: 2 } },
+        { text: "Leave detailed code review comments with references and examples.", scores: { Scholar: 1, Craftsman: 1 } },
+        { text: "Assign them a refactoring task on existing code — best way to learn.", scores: { Maker: 1, Craftsman: 1 } },
+        { text: "Redesign the system so it's harder to write bad code in the first place.", scores: { Architect: 2 } }
+      ]
+    },
+    {
+      q: "What does 'done' mean to you?",
+      options: [
+        { text: "It works. Users can use it. Ship it.", scores: { Maker: 2 } },
+        { text: "It's tested, documented, and I wouldn't be embarrassed if anyone read the code.", scores: { Craftsman: 2 } },
+        { text: "It's extensible, well-architected, and won't require major surgery in 6 months.", scores: { Architect: 2 } },
+        { text: "There's no 'done' — only current best version. Always more to learn.", scores: { Explorer: 1, Scholar: 1 } }
+      ]
+    },
+    {
+      q: "The team is deadlocked on a tech stack decision. What's your move?",
+      options: [
+        { text: "Build two quick prototypes in each stack and let the data decide.", scores: { Maker: 2 } },
+        { text: "Facilitate a structured discussion and drive toward consensus.", scores: { Catalyst: 2 } },
+        { text: "Write a technical decision doc — pros/cons, tradeoffs, long-term implications.", scores: { Architect: 1, Scholar: 1 } },
+        { text: "Pick the stack I've been meaning to learn. Disagreements are exploration opportunities.", scores: { Explorer: 2 } }
+      ]
+    },
+    {
+      q: "What's your personal definition of great code?",
+      options: [
+        { text: "Code that solves real problems for real users, fast.", scores: { Maker: 2 } },
+        { text: "Code so clean it reads like prose — any dev can understand it in one pass.", scores: { Craftsman: 2 } },
+        { text: "Code that holds up under scale, failure, and future requirements.", scores: { Architect: 2 } },
+        { text: "Code that reveals something new about the problem, or the medium itself.", scores: { Scholar: 1, Explorer: 1 } }
       ]
     }
   ];
@@ -182,18 +232,40 @@ export default function LandingAndAuth() {
     setOnboardStep('connect_profiles');
   };
 
-  // DNA Quiz answerselect
-  const handleDnaAnswerSelect = (trait, weight) => {
-    setDnaAnswers(prev => ({
-      ...prev,
-      [trait]: prev[trait] + weight
-    }));
+  // DNA Quiz answer select — multi-trait scoring
+  const handleDnaAnswerSelect = (scores) => {
+    setDnaAnswers(prev => {
+      const updated = { ...prev };
+      Object.entries(scores).forEach(([trait, pts]) => {
+        if (updated[trait] !== undefined) updated[trait] += pts;
+      });
+      return updated;
+    });
 
     if (currentDnaQ < DNA_QUIZ_QUESTIONS.length - 1) {
       setCurrentDnaQ(prev => prev + 1);
     } else {
       triggerAIEngineAnalysis();
     }
+  };
+
+  // Derive primary and secondary DNA from scores
+  const getDNAResult = () => {
+    const sorted = Object.entries(dnaAnswers).sort((a, b) => b[1] - a[1]);
+    return { primary: sorted[0][0], secondary: sorted[1][0], scores: dnaAnswers };
+  };
+
+  const DNA_DESCRIPTIONS = {
+    Maker: 'Builds first, iterates fast, learns by doing. Thrives on shipping working prototypes and turning ideas into reality under any constraint.',
+    Architect: 'Systems thinker who designs before coding. Obsessed with scalability, clean interfaces, and building things that last without becoming tech debt.',
+    Explorer: 'Curiosity-driven and frontier-seeking. Easily drawn to new languages, weird protocols, and emerging tech — finds the pivot itself exciting.',
+    Scholar: 'Research-first, deep-understanding before action. Reads the paper, traces the source, and documents the edge cases others miss.',
+    Craftsman: 'Quality-obsessed and refactor-driven. Code aesthetics matter morally. Won\'t ship until it reads like prose and holds under scrutiny.',
+    Catalyst: 'A multiplier and people-oriented builder. Unblocks others, facilitates clarity, and makes the team stronger than the sum of its parts.'
+  };
+
+  const DNA_EMOJIS = {
+    Maker: '⚒️', Architect: '🏛️', Explorer: '🧭', Scholar: '📚', Craftsman: '💎', Catalyst: '⚡'
   };
 
   // Connect platform prompt
@@ -221,7 +293,7 @@ export default function LandingAndAuth() {
       `[PROCESS] Initializing Developer DNA Identity Engine v2.0...`,
       `[INFO] Target Node: ${username || 'developer'} authenticated on-chain.`,
       `[INFO] Querying Identity Quiz vectors (learning style, build architecture)...`,
-      `[INFO] Mapping response metrics: Maker:${dnaAnswers.Builder}%, Explorer:${dnaAnswers.Explorer}%, Scholar:${dnaAnswers.Scholar}%`,
+      `[INFO] Mapping response metrics: Maker:${dnaAnswers.Maker || 0}pt, Explorer:${dnaAnswers.Explorer || 0}pt, Scholar:${dnaAnswers.Scholar || 0}pt`,
       `[GITHUB] Connecting repository parser indexer...`,
       connectedProfiles.github.connected 
         ? `[GITHUB] Synced Profile @${connectedProfiles.github.username}: Found 40 active repos, 1024 stars, 1200 contributions.`
@@ -310,148 +382,30 @@ export default function LandingAndAuth() {
   // Determine if at least one platform connected during onboarding
   const hasConnectedPlatform = Object.values(connectedProfiles).some(p => p.connected);
 
+  // Quick demo: auto-fill email + phone + handle
+  const handleQuickDemo = () => {
+    setEmail('demo@poofie.dev');
+    setEmailCodeSent(true);
+    setEmailVerified(true);
+    setPhone('+91 9876543210');
+    setPhoneCodeSent(true);
+    setPhoneVerified(true);
+    setUsername('demo_coder');
+    handleAuthVerify('demo@poofie.dev', '+91 9876543210', 'demo_coder');
+    setOnboardStep('connect_profiles');
+  };
+
   // --- RENDER VISITOR LANDING PAGE ---
   if (activeView === 'landing') {
     return (
-      <div className="animate-slide-up" style={{ width: '100%' }}>
-        {/* Hero Section */}
-        <section className="hero-content" style={{ marginTop: '50px', marginBottom: '60px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 16px', background: 'rgba(0, 242, 254, 0.05)', borderRadius: '24px', border: '1px solid var(--border-glow)', marginBottom: '24px' }}>
-            <Sparkles size={14} style={{ color: 'var(--accent-cyan)' }} />
-            <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--accent-cyan)' }}>V2.0 LIVE: AI DEVELOPER DNA</span>
-          </div>
-
-          <h1 className="hero-title">Discover Your true Developer DNA.</h1>
-          <p className="hero-subtitle">
-            Poofie parses your learning habits, hackathon achievements, and coding activity to compile a living Developer DNA profile. Find your tribe, locate compatible teammates, and explore meaningful collaborations.
-          </p>
-
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
-            <button onClick={handleStartAuth} className="btn-primary" style={{ padding: '14px 28px', fontSize: '0.95rem' }}>
-              <Sparkles size={18} />
-              Get Started / Claim Your DNA
-            </button>
-            <a href="#dna-types" className="btn-secondary" style={{ padding: '14px 28px', fontSize: '0.95rem' }}>
-              Explore DNA Types
-            </a>
-          </div>
-
-          <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'center' }}>
-            <button 
-              type="button"
-              onClick={handleClearDatabase}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--text-dim)',
-                fontSize: '0.75rem',
-                cursor: 'pointer',
-                textDecoration: 'underline',
-                transition: 'var(--transition-smooth)'
-              }}
-            >
-              Reset Sandbox Database (Wipe Local Storage)
-            </button>
-          </div>
-        </section>
-
-        {/* 8 DNA Types Grid */}
-        <section id="dna-types" style={{ padding: '80px 0', borderTop: '1px solid var(--border-light)' }}>
-          <h2 style={{ color: 'var(--text-main)', textAlign: 'center', fontSize: '2rem', marginBottom: '12px' }}>
-            The 8 Developer DNA Identities
-          </h2>
-          <p style={{ color: 'var(--text-muted)', textAlign: 'center', fontSize: '0.9rem', maxWidth: '600px', margin: '0 auto 50px auto', lineHeight: '1.5' }}>
-            Your DNA Type explains WHO you are. When you take our assessment, the Identity Engine evaluates your trait components to map your coding archetype:
-          </p>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: '24px',
-            maxWidth: '1200px',
-            margin: '0 auto',
-            padding: '0 20px'
-          }}>
-            {[
-              { emoji: "⚒️", title: "Maker", desc: "Builds first. Learns by aggressively compiling and creating working prototypes." },
-              { emoji: "🏛️", title: "Architect", desc: "Designs systems. Obsessed with high scalability, clean data flows, and long-term modularity." },
-              { emoji: "🧭", title: "Explorer", desc: "Experiments constantly. Highly driven by pure curiosity and learning new tools." },
-              { emoji: "♟️", title: "Strategist", desc: "Optimization focused. Possesses a competitive coding mindset and thrives under pressure." },
-              { emoji: "📚", title: "Scholar", desc: "Research oriented. Seeks deep internal understanding, reading code repositories and docs." },
-              { emoji: "⚗️", title: "Alchemist", desc: "Combines ideas creatively. Thrives on the intersection of diverse systems and libraries." },
-              { emoji: "⚡", title: "Catalyst", desc: "Community driven. Natural leader, coordinator, and team glue bringing developers together." },
-              { emoji: "💎", title: "Craftsman", desc: "Obsessed with high quality. Polishes layouts, code structure, and performance relentlessly." }
-            ].map((dna, idx) => (
-              <div key={idx} className="glass-panel glow-cyan" style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <span style={{ fontSize: '2.5rem' }}>{dna.emoji}</span>
-                <h3 style={{ fontSize: '1.2rem', color: 'var(--text-main)', fontWeight: 700 }}>{dna.title}</h3>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.5' }}>{dna.desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* 4 Layers Showcase */}
-        <section style={{ padding: '80px 0', borderTop: '1px solid var(--border-light)', background: 'rgba(0,0,0,0.1)' }}>
-          <h2 style={{ color: 'var(--text-main)', textAlign: 'center', fontSize: '2rem', marginBottom: '48px' }}>
-            The 4 Layers of Poofie
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '24px', maxWidth: '1100px', margin: '0 auto', padding: '0 20px' }}>
-            {[
-              { num: "01", name: "Data Collection", desc: "Connect Github, LeetCode, and Devfolio. We pull active contributions, stats, and achievements." },
-              { num: "02", name: "Identity Engine", desc: "Our simulated AI evaluates your scores, assigning your Primary and Secondary DNA types." },
-              { num: "03", name: "Domain Discovery", desc: "Select domain interests (AI, Web, Cybersecurity) and resolve quizzes to find your Specialization." },
-              { num: "04", name: "Clan Guilds", desc: "Join Clans like AI Builders, Frontend Guild. Connect with highly compatible peers and collaborators." }
-            ].map((step, idx) => (
-              <div key={idx} className="glass-panel" style={{ padding: '24px', position: 'relative' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--accent-cyan)', display: 'block', marginBottom: '8px' }}>LAYER {step.num}</span>
-                <h4 style={{ fontSize: '1rem', color: 'var(--text-main)', marginBottom: '8px' }}>{step.name}</h4>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>{step.desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Community Showcase */}
-        <section style={{ padding: '80px 0', borderTop: '1px solid var(--border-light)', marginBottom: '60px' }}>
-          <h2 style={{ color: 'var(--text-main)', textAlign: 'center', fontSize: '2rem', marginBottom: '12px' }}>
-            Meet our Sandbox Developers
-          </h2>
-          <p style={{ color: 'var(--text-muted)', textAlign: 'center', fontSize: '0.9rem', marginBottom: '48px' }}>
-            Interact with rich pre-built identities immediately. Connect and switch sandbox personas!
-          </p>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
-            {systemUsers.map(user => (
-              <div key={user.username} className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <img src={user.avatar} alt={user.name} style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border-light)' }} />
-                  <div>
-                    <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)' }}>{user.name}</h3>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>@{user.username}</span>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <span style={{ fontSize: '0.65rem', background: 'rgba(0, 242, 254, 0.08)', color: 'var(--accent-cyan)', padding: '2px 8px', borderRadius: '10px', fontWeight: 600 }}>{user.dnaType} DNA</span>
-                  <span style={{ fontSize: '0.65rem', background: 'rgba(155, 81, 224, 0.08)', color: 'var(--accent-purple)', padding: '2px 8px', borderRadius: '10px', fontWeight: 600 }}>{user.specialization}</span>
-                </div>
-
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4', flex: 1 }}>{user.bio}</p>
-
-                <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '12px', display: 'flex', justifyContent: 'between', alignItems: 'center' }}>
-                  <div>
-                    <span style={{ fontSize: '0.6', color: 'var(--text-dim)', display: 'block' }}>CLAN</span>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-main)' }}>{user.clan}</span>
-                  </div>
-                  <button onClick={handleStartAuth} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.7rem' }}>
-                    View Profile
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+      <div className="animate-slide-up" style={{ width: '100%', background: '#000000' }}>
+        {/* Interactive Floating Icons Hero Section */}
+        <FloatingIconsHero
+          title="Discover Your true Developer DNA."
+          subtitle="Poofie parses your learning habits, hackathon achievements, and coding activity to compile a living Developer DNA profile. Find your tribe, locate compatible teammates, and explore meaningful collaborations."
+          onStartAuth={handleStartAuth}
+          onClearDatabase={handleClearDatabase}
+        />
       </div>
     );
   }
@@ -472,7 +426,7 @@ export default function LandingAndAuth() {
           <h2 style={{ fontSize: '1.6rem', marginTop: '4px', fontFamily: 'var(--font-heading)' }}>
             {onboardStep === 'otp' && 'Verify Email & Phone Credentials'}
             {onboardStep === 'connect_profiles' && 'Authenticate Developer Platforms'}
-            {onboardStep === 'dna_quiz' && `Developer DNA Assessment (${currentDnaQ + 1}/6)`}
+            {onboardStep === 'dna_quiz' && `Developer DNA Assessment (${currentDnaQ + 1}/10)`}
             {onboardStep === 'ai_analysis' && 'AI Identity Analysis'}
             {onboardStep === 'dna_reveal' && 'Your Developer DNA Archetype'}
             {onboardStep === 'domain_setup' && 'Choose Your Focus Domain'}
@@ -483,9 +437,30 @@ export default function LandingAndAuth() {
         {/* --- STEP 1: CREDENTIALS OTP --- */}
         {onboardStep === 'otp' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-              Authenticate your email and phone number. Mock OTP codes are any 6-digit sequence (e.g. `123456`).
-            </p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.4', margin: 0 }}>
+                🧪 <strong style={{ color: 'var(--accent-cyan)' }}>Sandbox Mode:</strong> Use any 6-digit code (e.g. <code style={{ background: 'rgba(0,242,254,0.08)', padding: '1px 6px', borderRadius: '4px', color: 'var(--accent-cyan)' }}>123456</code>) as your OTP.
+              </p>
+              <button
+                onClick={handleQuickDemo}
+                style={{
+                  background: 'rgba(0,242,254,0.06)',
+                  border: '1px solid rgba(0,242,254,0.25)',
+                  color: 'var(--accent-cyan)',
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  padding: '6px 14px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,242,254,0.12)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,242,254,0.06)'}
+              >
+                ⚡ Quick Demo (Skip OTP)
+              </button>
+            </div>
 
             {/* Email OTP */}
             <div>
@@ -672,64 +647,106 @@ export default function LandingAndAuth() {
               </div>
             )}
 
-            {hasConnectedPlatform ? (
-              <button onClick={() => setOnboardStep('dna_quiz')} className="btn-primary" style={{ justifyContent: 'center', marginTop: '10px' }}>
-                Start Developer DNA Quiz
-                <ArrowRight size={16} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+              {hasConnectedPlatform && (
+                <button onClick={() => setOnboardStep('dna_quiz')} className="btn-primary" style={{ justifyContent: 'center' }}>
+                  Start Developer DNA Quiz
+                  <ArrowRight size={16} />
+                </button>
+              )}
+              <button
+                onClick={() => setOnboardStep('dna_quiz')}
+                style={{
+                  background: 'transparent',
+                  border: '1px dashed rgba(255,255,255,0.12)',
+                  color: 'var(--text-dim)',
+                  fontSize: '0.75rem',
+                  padding: '10px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = 'var(--text-dim)'; }}
+              >
+                Skip for now — Connect profiles later from Settings
               </button>
-            ) : (
-              <div style={{
-                background: 'rgba(239, 68, 68, 0.05)',
-                border: '1px dashed rgba(239, 68, 68, 0.2)',
-                borderRadius: '8px',
-                padding: '12px',
-                color: '#fca5a5',
-                fontSize: '0.75rem',
-                textAlign: 'center',
-                marginTop: '10px'
-              }}>
-                Please authorize with at least one developer profile to authenticate your identity registration.
-              </div>
-            )}
+            </div>
           </div>
         )}
 
         {/* --- STEP 3: DNA QUIZ QUESTIONS --- */}
         {onboardStep === 'dna_quiz' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden', marginBottom: '10px' }}>
-              <div style={{ width: `${((currentDnaQ + 1) / DNA_QUIZ_QUESTIONS.length) * 100}%`, height: '100%', background: 'var(--accent-gradient)', transition: 'width 0.3s ease' }}></div>
+            {/* Progress bar */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontSize: '0.68rem', color: 'var(--text-dim)', fontWeight: 600 }}>QUESTION {currentDnaQ + 1} OF {DNA_QUIZ_QUESTIONS.length}</span>
+                <span style={{ fontSize: '0.68rem', color: 'var(--accent-cyan)', fontWeight: 700 }}>{Math.round(((currentDnaQ) / DNA_QUIZ_QUESTIONS.length) * 100)}% COMPLETE</span>
+              </div>
+              <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+                <div style={{ width: `${((currentDnaQ) / DNA_QUIZ_QUESTIONS.length) * 100}%`, height: '100%', background: 'var(--accent-gradient)', transition: 'width 0.4s ease' }}></div>
+              </div>
             </div>
 
-            <p style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: '1.4' }}>
+            <p style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: '1.5', marginTop: '4px' }}>
               {DNA_QUIZ_QUESTIONS[currentDnaQ].q}
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '4px' }}>
               {DNA_QUIZ_QUESTIONS[currentDnaQ].options.map((opt, idx) => (
                 <button
                   key={idx}
-                  onClick={() => handleDnaAnswerSelect(opt.trait, opt.weight)}
+                  onClick={() => handleDnaAnswerSelect(opt.scores)}
                   className="btn-secondary"
                   style={{
                     padding: '16px 20px',
                     textAlign: 'left',
                     justifyContent: 'start',
-                    fontSize: '0.85rem',
-                    lineHeight: '1.4',
+                    fontSize: '0.875rem',
+                    lineHeight: '1.5',
                     background: 'rgba(255, 255, 255, 0.02)',
                     borderColor: 'var(--border-light)',
                     display: 'block',
-                    width: '100%'
+                    width: '100%',
+                    transition: 'all 0.2s ease'
                   }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,242,254,0.05)'; e.currentTarget.style.borderColor = 'var(--accent-cyan)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.borderColor = 'var(--border-light)'; }}
                 >
-                  <span style={{ color: 'var(--accent-cyan)', fontWeight: 800, marginRight: '8px' }}>
+                  <span style={{ color: 'var(--accent-cyan)', fontWeight: 800, marginRight: '10px', fontFamily: 'monospace' }}>
                     {String.fromCharCode(65 + idx)}.
                   </span>
                   {opt.text}
                 </button>
               ))}
             </div>
+
+            {/* Skip quiz option */}
+            <button
+              onClick={() => {
+                // Assign equal Maker scores for a skip scenario
+                const skipScores = { Maker: 4, Architect: 3, Explorer: 3, Scholar: 2, Craftsman: 2, Catalyst: 2 };
+                handleDNAQuizCompletion(skipScores);
+                setDnaAnswers(skipScores);
+                setOnboardStep('dna_reveal');
+              }}
+              style={{
+                background: 'transparent',
+                border: '1px dashed rgba(255,255,255,0.1)',
+                color: 'var(--text-dim)',
+                fontSize: '0.72rem',
+                padding: '8px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                marginTop: '4px',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'var(--text-dim)'; }}
+            >
+              Skip quiz — assign default DNA profile
+            </button>
           </div>
         )}
 
@@ -767,59 +784,87 @@ export default function LandingAndAuth() {
         )}
 
         {/* --- STEP 5: DNA TROPHY REVEAL --- */}
-        {onboardStep === 'dna_reveal' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', alignItems: 'center', textAlign: 'center' }}>
-            <div style={{
-              width: '80px',
-              height: '80px',
-              borderRadius: '50%',
-              background: 'rgba(0, 242, 254, 0.1)',
-              border: '2px solid var(--accent-cyan)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: 'var(--shadow-glow)',
-              marginBottom: '4px'
-            }}>
-              <Trophy size={40} style={{ color: 'var(--accent-cyan)' }} />
-            </div>
-
-            <div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>YOUR PRIMARY DNA TYPE</span>
-              <h3 style={{
-                fontSize: '2.4rem',
-                fontFamily: 'var(--font-heading)',
-                background: 'var(--accent-gradient)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                fontWeight: 800,
-                marginTop: '4px'
+        {onboardStep === 'dna_reveal' && (() => {
+          const result = getDNAResult();
+          const primaryEmoji = DNA_EMOJIS[result.primary] || '🧬';
+          const secondaryEmoji = DNA_EMOJIS[result.secondary] || '🔬';
+          const description = DNA_DESCRIPTIONS[result.primary] || '';
+          const maxScore = Math.max(...Object.values(result.scores));
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', alignItems: 'center', textAlign: 'center' }}>
+              {/* Trophy icon */}
+              <div style={{
+                width: '90px',
+                height: '90px',
+                borderRadius: '50%',
+                background: 'rgba(0, 242, 254, 0.08)',
+                border: '2px solid var(--accent-cyan)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: 'var(--shadow-glow)',
+                fontSize: '2.5rem'
               }}>
-                {dnaAnswers.Builder >= Math.max(dnaAnswers.Explorer, dnaAnswers.Scholar, dnaAnswers.Strategist, dnaAnswers.Architect, dnaAnswers.Alchemist, dnaAnswers.Catalyst, dnaAnswers.Craftsman) && 'Maker ⚒️'}
-                {dnaAnswers.Architect >= Math.max(dnaAnswers.Builder, dnaAnswers.Explorer, dnaAnswers.Scholar, dnaAnswers.Strategist, dnaAnswers.Alchemist, dnaAnswers.Catalyst, dnaAnswers.Craftsman) && 'Architect 🏛️'}
-                {dnaAnswers.Explorer >= Math.max(dnaAnswers.Builder, dnaAnswers.Architect, dnaAnswers.Scholar, dnaAnswers.Strategist, dnaAnswers.Alchemist, dnaAnswers.Catalyst, dnaAnswers.Craftsman) && 'Explorer 🧭'}
-                {dnaAnswers.Strategist >= Math.max(dnaAnswers.Builder, dnaAnswers.Architect, dnaAnswers.Explorer, dnaAnswers.Scholar, dnaAnswers.Alchemist, dnaAnswers.Catalyst, dnaAnswers.Craftsman) && 'Strategist ♟️'}
-                {dnaAnswers.Scholar >= Math.max(dnaAnswers.Builder, dnaAnswers.Architect, dnaAnswers.Explorer, dnaAnswers.Strategist, dnaAnswers.Alchemist, dnaAnswers.Catalyst, dnaAnswers.Craftsman) && 'Scholar 📚'}
-                {dnaAnswers.Alchemist >= Math.max(dnaAnswers.Builder, dnaAnswers.Architect, dnaAnswers.Explorer, dnaAnswers.Scholar, dnaAnswers.Strategist, dnaAnswers.Catalyst, dnaAnswers.Craftsman) && 'Alchemist ⚗️'}
-                {dnaAnswers.Catalyst >= Math.max(dnaAnswers.Builder, dnaAnswers.Architect, dnaAnswers.Explorer, dnaAnswers.Scholar, dnaAnswers.Strategist, dnaAnswers.Alchemist, dnaAnswers.Craftsman) && 'Catalyst ⚡'}
-                {dnaAnswers.Craftsman >= Math.max(dnaAnswers.Builder, dnaAnswers.Architect, dnaAnswers.Explorer, dnaAnswers.Scholar, dnaAnswers.Strategist, dnaAnswers.Alchemist, dnaAnswers.Catalyst) && 'Craftsman 💎'}
-              </h3>
-              
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginTop: '6px' }}>
-                Secondary DNA Type: <strong>Explorer 🧭</strong> (Calculated)
-              </span>
+                {primaryEmoji}
+              </div>
+
+              {/* Primary DNA */}
+              <div>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.12em', fontWeight: 700 }}>YOUR DEVELOPER DNA TYPE</span>
+                <h3 style={{
+                  fontSize: '2.6rem',
+                  fontFamily: 'var(--font-heading)',
+                  background: 'var(--accent-gradient)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  fontWeight: 800,
+                  marginTop: '6px',
+                  lineHeight: 1
+                }}>
+                  {result.primary}
+                </h3>
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '10px', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '0.7rem', padding: '4px 12px', borderRadius: '20px', background: 'rgba(0,242,254,0.08)', color: 'var(--accent-cyan)', border: '1px solid rgba(0,242,254,0.2)', fontWeight: 700 }}>PRIMARY</span>
+                  <span style={{ fontSize: '0.7rem', padding: '4px 12px', borderRadius: '20px', background: 'rgba(155,81,224,0.08)', color: 'var(--accent-purple)', border: '1px solid rgba(155,81,224,0.2)', fontWeight: 700 }}>SECONDARY: {result.secondary} {secondaryEmoji}</span>
+                </div>
+              </div>
+
+              {/* Description */}
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: '1.6', background: 'rgba(255,255,255,0.02)', padding: '18px', borderRadius: '10px', border: '1px solid var(--border-light)', textAlign: 'left' }}>
+                {description}
+              </p>
+
+              {/* Trait Score Bars */}
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px', textAlign: 'left' }}>
+                <span style={{ fontSize: '0.68rem', color: 'var(--text-dim)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>TRAIT BREAKDOWN</span>
+                {Object.entries(result.scores).sort((a, b) => b[1] - a[1]).map(([trait, score]) => (
+                  <div key={trait}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '0.75rem', color: trait === result.primary ? 'var(--accent-cyan)' : 'var(--text-muted)', fontWeight: trait === result.primary ? 700 : 400 }}>
+                        {DNA_EMOJIS[trait]} {trait}
+                      </span>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>{score}pt</span>
+                    </div>
+                    <div style={{ height: '5px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{
+                        width: maxScore > 0 ? `${(score / maxScore) * 100}%` : '0%',
+                        height: '100%',
+                        background: trait === result.primary ? 'var(--accent-gradient)' : 'rgba(155,81,224,0.4)',
+                        borderRadius: '3px',
+                        transition: 'width 0.8s ease'
+                      }}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button onClick={() => setOnboardStep('domain_setup')} className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+                Proceed to Domain Selection
+                <ArrowRight size={16} />
+              </button>
             </div>
-
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.5', background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
-              "An active builder who thrives on spinning up working prototypes, tinkering with unfamiliar libraries under tight deadlines, and learning interactively through codebase reviews."
-            </p>
-
-            <button onClick={() => setOnboardStep('domain_setup')} className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-              Proceed to Domain Selection
-              <ArrowRight size={16} />
-            </button>
-          </div>
-        )}
+          );
+        })()}
 
         {/* --- STEP 6: DOMAIN SELECTION --- */}
         {onboardStep === 'domain_setup' && roleQuizStep === 0 && (
@@ -858,10 +903,38 @@ export default function LandingAndAuth() {
               })}
             </div>
 
-            <button onClick={proceedToRoleQuiz} className="btn-primary" style={{ justifyContent: 'center', marginTop: '10px' }}>
-              Take Domain Specialization Quiz
-              <ArrowRight size={16} />
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+              <button onClick={proceedToRoleQuiz} className="btn-primary" style={{ justifyContent: 'center' }}>
+                Take Domain Specialization Quiz
+                <ArrowRight size={16} />
+              </button>
+              <button
+                onClick={() => {
+                  // Default to WebDev if nothing selected
+                  const domains = selectedDomains.length > 0 ? selectedDomains : ['WebDev'];
+                  setSelectedDomains(domains);
+                  const defaultSpec = 'Full Stack Developer';
+                  const defaultClan = 'Frontend Guild';
+                  setGeneratedSpecialization(defaultSpec);
+                  setSelectedClan(defaultClan);
+                  handleCompleteDomainSetup(domains, defaultSpec, defaultClan);
+                }}
+                style={{
+                  background: 'transparent',
+                  border: '1px dashed rgba(255,255,255,0.12)',
+                  color: 'var(--text-dim)',
+                  fontSize: '0.75rem',
+                  padding: '10px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = 'var(--text-dim)'; }}
+              >
+                Skip & Enter Feed now
+              </button>
+            </div>
           </div>
         )}
 
