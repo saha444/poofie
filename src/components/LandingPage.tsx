@@ -1,9 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import PromptingIsAllYouNeed from './PromptingIsAllYouNeed'
 
 export default function LandingPage() {
+  const [isFlipped, setIsFlipped] = useState(false)
   const onStartAuth = () => signIn('github', { callbackUrl: '/onboarding/connect' })
 
   return (
@@ -23,36 +25,52 @@ export default function LandingPage() {
         transform: 'translateX(-50%)', 
         zIndex: 10,
         textAlign: 'center',
-        animation: 'slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1)'
+        animation: 'slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center'
       }}>
-        <button 
-          onClick={onStartAuth} 
-          className="btn-primary" 
-          style={{ 
-            padding: '18px 42px', 
-            fontSize: '1.05rem', 
-            fontWeight: 800,
-            letterSpacing: '0.05em',
-            textTransform: 'uppercase',
-            boxShadow: '0 0 40px rgba(0, 242, 254, 0.35), inset 0 0 10px rgba(255, 255, 255, 0.2)',
-            borderRadius: '30px',
-            border: '1px solid rgba(0, 242, 254, 0.5)',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease-in-out'
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.transform = 'scale(1.05)'
-            e.currentTarget.style.boxShadow = '0 0 50px rgba(0, 242, 254, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.3)'
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.transform = 'scale(1)'
-            e.currentTarget.style.boxShadow = '0 0 40px rgba(0, 242, 254, 0.35), inset 0 0 10px rgba(255, 255, 255, 0.2)'
-          }}
-        >
-          Get Started
-        </button>
+        <div style={{ 
+          marginBottom: '16px', 
+          fontSize: '0.75rem', 
+          fontWeight: 700, 
+          color: 'rgba(255, 255, 255, 0.5)', 
+          letterSpacing: '0.2em', 
+          fontFamily: 'monospace', 
+          textTransform: 'uppercase',
+          textShadow: '0 0 10px rgba(255, 255, 255, 0.1)'
+        }}>
+          PULL TO START
+        </div>
+
+        <div className="toggle-container">
+          <input 
+            className="toggle-input" 
+            type="checkbox"
+            checked={isFlipped}
+            onChange={(e) => {
+              if (e.target.checked) {
+                setIsFlipped(true)
+                setTimeout(() => {
+                  onStartAuth()
+                }, 450)
+              }
+            }}
+          />
+          <div className="toggle-handle-wrapper">
+            <div className="toggle-handle">
+              <div className="toggle-handle-knob"></div>
+              <div className="toggle-handle-bar-wrapper">
+                <div className="toggle-handle-bar"></div>
+              </div>
+            </div>
+          </div>
+          <div className="toggle-base">
+            <div className="toggle-base-inside"></div>
+          </div>
+        </div>
         
-        <div style={{ marginTop: '16px', fontSize: '0.65rem', color: 'rgba(255,255,255,0.25)', letterSpacing: '0.15em', fontFamily: 'monospace', textTransform: 'uppercase' }}>
+        <div style={{ marginTop: '20px', fontSize: '0.65rem', color: 'rgba(255,255,255,0.25)', letterSpacing: '0.15em', fontFamily: 'monospace', textTransform: 'uppercase' }}>
           🔒 Verified Attestation Engine
         </div>
       </div>
@@ -60,3 +78,4 @@ export default function LandingPage() {
     </main>
   )
 }
+
