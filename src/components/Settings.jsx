@@ -160,7 +160,49 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* Section 4: Clear Database Danger Zone */}
+          {/* Section 4: Sepolia Testnet Resources */}
+          <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Globe size={16} style={{ color: 'var(--accent-purple)' }} />
+              Sepolia Testnet Faucets & Blockchains
+            </h3>
+            
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+              Interact with the live Sepolia testnet contracts using testnet ETH tokens. If your balance is low, you can request free Sepolia ETH from the following verified faucets:
+            </p>
+
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '4px' }}>
+              <a 
+                href="https://sepoliafaucet.com/" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="btn-secondary"
+                style={{ fontSize: '0.75rem', padding: '8px 14px' }}
+              >
+                Alchemy Sepolia Faucet ↗
+              </a>
+              <a 
+                href="https://www.infura.io/faucet/sepolia" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="btn-secondary"
+                style={{ fontSize: '0.75rem', padding: '8px 14px' }}
+              >
+                Infura Sepolia Faucet ↗
+              </a>
+              <a 
+                href="https://sepolia.etherscan.io/" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="btn-secondary"
+                style={{ fontSize: '0.75rem', padding: '8px 14px' }}
+              >
+                Sepolia Etherscan Explorer ↗
+              </a>
+            </div>
+          </div>
+
+          {/* Section 5: Clear Database Danger Zone */}
           <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#ef4444', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Trash2 size={16} />

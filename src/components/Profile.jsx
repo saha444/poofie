@@ -420,7 +420,19 @@ export default function Profile() {
                       <strong style={{ fontSize: '0.85rem', color: 'var(--text-main)', display: 'block' }}>{rev.reviewer}</strong>
                       <span style={{ fontSize: '0.65rem', color: 'var(--accent-purple)' }}>{rev.relationship} relationship</span>
                     </div>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>{rev.date}</span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {rev.date}
+                      {rev.txHash && (
+                        <a 
+                          href={`https://sepolia.etherscan.io/tx/${rev.txHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: 'var(--accent-purple)', textDecoration: 'none', fontWeight: 600 }}
+                        >
+                          Tx ↗
+                        </a>
+                      )}
+                    </span>
                   </div>
 
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
@@ -458,9 +470,21 @@ export default function Profile() {
                         @{end.endorserUsername}
                       </span>
                     </div>
-                    <span style={{ fontSize: '0.65rem', background: 'rgba(155, 81, 224, 0.05)', color: 'var(--accent-purple)', padding: '2px 8px', borderRadius: '4px' }}>
-                      {end.relation}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {end.txHash && (
+                        <a 
+                          href={`https://sepolia.etherscan.io/tx/${end.txHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ fontSize: '0.65rem', color: 'var(--accent-purple)', textDecoration: 'none', fontWeight: 600 }}
+                        >
+                          Sepolia Tx ↗
+                        </a>
+                      )}
+                      <span style={{ fontSize: '0.65rem', background: 'rgba(155, 81, 224, 0.05)', color: 'var(--accent-purple)', padding: '2px 8px', borderRadius: '4px' }}>
+                        {end.relation}
+                      </span>
+                    </div>
                   </div>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
                     "{end.reason}"

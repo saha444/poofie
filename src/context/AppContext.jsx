@@ -117,7 +117,7 @@ export const AppProvider = ({ children }) => {
   const [activeView, setActiveView] = useState('landing');
   const [viewParams, setViewParams] = useState({});
 
-  // Wallet Connection State (loads wallet details dynamically from localStorage if connected)
+  // Wallet Connection State
   const [wallet, setWallet] = useState(() => {
     const saved = localStorage.getItem('poofie_wallet');
     return saved ? JSON.parse(saved) : {
@@ -129,13 +129,13 @@ export const AppProvider = ({ children }) => {
     };
   });
 
-  // Logged-in User Profile (loads persistently from localStorage)
+  // Logged-in User Profile
   const [userProfile, setUserProfile] = useState(() => {
     const saved = localStorage.getItem('poofie_userProfile');
     return saved ? JSON.parse(saved) : null;
   });
 
-  // Database of users and their respective profiles
+  // Database of users and profiles
   const [systemUsers, setSystemUsers] = useState(() => {
     const saved = localStorage.getItem('poofie_systemUsers');
     return saved ? JSON.parse(saved) : MOCK_SYSTEM_USERS;
@@ -184,10 +184,51 @@ export const AppProvider = ({ children }) => {
     return saved ? parseInt(saved) : 0;
   });
 
-  // XP level curve: 1000 XP per level
+  // XP level curve
   const XP_PER_LEVEL = 1000;
 
-  // Auto-route on mount if wallet and profile already exist!
+  // Sepolia testnet constraint check (11155111 is 0xaa36a7)
+  const isSepoliaNetwork = !wallet.connected || wallet.chainId === 11155111;
+
+  // Dynamic chain and account switches listeners
+  useEffect(() => {
+    if (typeof window !== 'undefined' && typeof window.ethereum !== 'undefined') {
+      const handleChainChanged = (chainIdHex) => {
+        const chainId = parseInt(chainIdHex, 16);
+        setWallet(prev => ({
+          ...prev,
+          chainId,
+          network: chainId === 11155111 ? 'Sepolia Testnet' : `Incorrect Network (${chainId})`
+        }));
+        
+        if (chainId === 11155111) {
+          addNotification('success', '🟣 Switched network to Sepolia Testnet.');
+        } else {
+          addNotification('warning', '⚠️ Connected to incorrect network. Please switch to Sepolia Testnet.');
+        }
+      };
+
+      const handleAccountsChanged = (accounts) => {
+        if (accounts.length === 0) {
+          handleDisconnect();
+        } else {
+          const address = accounts[0];
+          setWallet(prev => ({ ...prev, address }));
+          addNotification('system', `Active account switched to: ${shortenAddress(address)}`);
+        }
+      };
+
+      window.ethereum.on('chainChanged', handleChainChanged);
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+
+      return () => {
+        window.ethereum.removeListener('chainChanged', handleChainChanged);
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+      };
+    }
+  }, []);
+
+  // Auto-route on mount if connected
   useEffect(() => {
     if (wallet.connected && userProfile) {
       setActiveView('feed');
@@ -280,10 +321,8 @@ export const AppProvider = ({ children }) => {
       };
     });
 
-    // Notify user of XP gain
     addNotification('xp', `🛡️ Earned +${amount} XP: ${reason}`);
 
-    // Create temporary overlay feedback
     const feedback = document.createElement('div');
     feedback.className = 'xp-pop-indicator';
     feedback.innerText = `+${amount} XP`;
@@ -291,7 +330,33 @@ export const AppProvider = ({ children }) => {
     setTimeout(() => feedback.remove(), 1800);
   };
 
-  // MetaMask Connection Trigger
+  // Switch network programmatically via MetaMask
+  const handleSwitchNetwork = async () => {
+    try {
+      setTxLoading(true);
+      setTxStep('Requesting network switch to Sepolia Testnet...');
+      await web3Mock.switchNetworkToSepolia();
+      
+      const connection = await web3Mock.connectWallet();
+      setWallet(prev => ({
+        ...prev,
+        chainId: connection.chainId,
+        network: connection.network,
+        balance: connection.balance
+      }));
+
+      setTxLoading(false);
+      setTxStep('');
+      addNotification('success', 'Successfully connected to Sepolia Testnet!');
+    } catch (e) {
+      console.error(e);
+      setTxLoading(false);
+      setTxStep('');
+      alert('Failed to switch networks automatically. Please switch to Sepolia manually inside your MetaMask.');
+    }
+  };
+
+  // Connect wallet
   const handleConnectWallet = async () => {
     try {
       setTxLoading(true);
@@ -301,7 +366,7 @@ export const AppProvider = ({ children }) => {
       setTxStep('Verifying address signature...');
       const signatureObj = await web3Mock.personalSign(
         connection.address, 
-        `Sign this message to establish your persistent Poofie identity.\n\nNonce: ${Math.floor(Math.random() * 100000)}`
+        `Sign this message to establish your persistent Poofie identity on Sepolia.\n\nNonce: ${Math.floor(Math.random() * 100000)}`
       );
 
       setWallet({
@@ -309,13 +374,13 @@ export const AppProvider = ({ children }) => {
         address: connection.address,
         chainId: connection.chainId,
         balance: connection.balance,
-        signature: signatureObj.signature
+        signature: signatureObj.signature,
+        network: connection.network
       });
 
       setTxLoading(false);
       setTxStep('');
 
-      // Check if user already has an established profile in localStorage
       const savedProfile = localStorage.getItem('poofie_userProfile');
       if (savedProfile) {
         addNotification('system', 'Wallet reconnected successfully.');
@@ -334,7 +399,6 @@ export const AppProvider = ({ children }) => {
 
   // Disconnect Wallet
   const handleDisconnect = () => {
-    // Clear storage states relating to session
     localStorage.removeItem('poofie_wallet');
     setWallet({
       connected: false,
@@ -343,7 +407,6 @@ export const AppProvider = ({ children }) => {
       balance: '0.00 ETH',
       signature: ''
     });
-    // Keep profile details in storage for next connects but clear active states
     setUserProfile(null);
     setStreakCount(0);
     setLowScoreRestricted(false);
@@ -383,10 +446,9 @@ export const AppProvider = ({ children }) => {
       const metadata = { emailHash: 'hash_email_sha256', phoneHash: 'hash_phone_sha256', wallet: wallet.address };
       const ipfsResult = await ipfsMock.uploadMetadata(metadata);
 
-      setTxStep('Minting Verified Human badge NFT on Ethereum...');
+      setTxStep('Minting Verified Human badge NFT on Sepolia...');
       const mintResult = await web3Mock.mintVerificationBadge(wallet.address, 'human');
 
-      // Initialize user profile structure
       const newProfile = {
         address: wallet.address,
         name: usernameInput.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
@@ -409,7 +471,7 @@ export const AppProvider = ({ children }) => {
       setTxLoading(false);
       setTxStep('');
 
-      addNotification('success', 'Verified Human NFT minted! ✅ Profile created.');
+      addNotification('success', `Verified Human NFT minted on Sepolia! ✅ Explorer: ${shortenAddress(mintResult.txHash)}`);
       navigate('onboarding');
     } catch (e) {
       console.error(e);
@@ -465,7 +527,7 @@ export const AppProvider = ({ children }) => {
       };
       const ipfsMeta = await ipfsMock.uploadMetadata(metadata);
 
-      setTxStep('Broadcasting transaction to Ethereum network...');
+      setTxStep('Broadcasting transaction to Sepolia testnet registry...');
       const tx = await web3Mock.sendEVMTransaction(
         wallet.address, 
         '0xpoofiecontentregistryaddress', 
@@ -490,6 +552,7 @@ export const AppProvider = ({ children }) => {
         likes: 0,
         commentsCount: 0,
         timestamp: Date.now(),
+        txHash: tx.txHash
       };
 
       setPosts(prev => [newPost, ...prev]);
@@ -497,7 +560,7 @@ export const AppProvider = ({ children }) => {
       setTxStep('');
 
       addXP(150, 'Published content to IPFS');
-      addNotification('success', `Post published on-chain! Tx: ${shortenAddress(tx.txHash)}`, 'View Post', 'profile', { username: userProfile.username });
+      addNotification('success', `Post indexed on Sepolia! Tx: ${shortenAddress(tx.txHash)}`, 'View Post', 'profile', { username: userProfile.username });
       navigate('feed');
     } catch (e) {
       console.error(e);
@@ -523,8 +586,8 @@ export const AppProvider = ({ children }) => {
         `Rate Post ${postId}: ${stars} Stars`
       );
 
-      setTxStep('Submitting rating block to on-chain ContentRegistry...');
-      await web3Mock.sendEVMTransaction(
+      setTxStep('Submitting rating block to on-chain Sepolia Registry...');
+      const tx = await web3Mock.sendEVMTransaction(
         wallet.address, 
         '0xpoofiecontentregistry', 
         `rateContent("${postId}", ${stars}, "${signatureObj.signature}")`
@@ -549,14 +612,14 @@ export const AppProvider = ({ children }) => {
             return {
               ...post,
               ratings: updatedRatings,
-              starsCount: averageStars
+              starsCount: averageStars,
+              rateTxHash: tx.txHash
             };
           }
           return post;
         });
       });
 
-      // Update creator's Content Score in users database
       if (updatedPostCreator) {
         setSystemUsers(prevUsers => {
           return prevUsers.map(sysUser => {
@@ -574,7 +637,6 @@ export const AppProvider = ({ children }) => {
           });
         });
 
-        // If current user is the owner, also sync their active userProfile
         if (updatedPostCreator === userProfile.username) {
           setUserProfile(prev => {
             const ratingImpact = stars >= 4 ? 3 : stars <= 2 ? -2 : 1;
@@ -633,8 +695,8 @@ export const AppProvider = ({ children }) => {
         signature
       });
 
-      setTxStep('Anchoring metadata hash to Ethereum Reputation Score Contract...');
-      await web3Mock.sendEVMTransaction(
+      setTxStep('Anchoring metadata hash to Sepolia Reputation Score Contract...');
+      const tx = await web3Mock.sendEVMTransaction(
         wallet.address,
         '0xpoofiereputationregistry',
         `submitReputationReview("${targetUsername}", "${ipfsResult.cid}")`
@@ -647,20 +709,18 @@ export const AppProvider = ({ children }) => {
         trust: ratings.trust,
         reliability: ratings.reliability,
         comment,
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        txHash: tx.txHash
       };
 
-      // Append to reviews
       setReputationReviews(prev => ({
         ...prev,
         [targetUsername]: [newReview, ...(prev[targetUsername] || [])]
       }));
 
-      // Recalculate average reputation
       const userReviews = [newReview, ...(reputationReviews[targetUsername] || [])];
       const avgReviewScore = userReviews.reduce((sum, r) => sum + ((r.skill + r.trust + r.reliability) / 3), 0) / userReviews.length;
       
-      // Update target user's scores
       setSystemUsers(prevUsers => {
         return prevUsers.map(sysUser => {
           if (sysUser.username === targetUsername) {
@@ -676,7 +736,6 @@ export const AppProvider = ({ children }) => {
         });
       });
 
-      // If targeting self (e.g. coworker reviews), update profile state
       if (targetUsername === userProfile?.username) {
         setUserProfile(prev => {
           const newReputationScore = Math.min(100, Math.round(avgReviewScore * 10));
@@ -719,8 +778,8 @@ export const AppProvider = ({ children }) => {
         await web3Mock.personalSign(wallet.address, `Endorse @${targetUsername}: ${reason}`);
       }
 
-      setTxStep('Broadcasting transaction to EndorsementRegistry...');
-      await web3Mock.sendEVMTransaction(
+      setTxStep('Broadcasting transaction to Sepolia EndorsementRegistry...');
+      const tx = await web3Mock.sendEVMTransaction(
         wallet.address,
         '0xpoofieendorsementregistry',
         `endorseUser("${targetUsername}")`
@@ -730,7 +789,8 @@ export const AppProvider = ({ children }) => {
         endorserName,
         endorserUsername,
         relation: relationship,
-        reason
+        reason,
+        txHash: tx.txHash
       };
 
       setEndorsements(prev => ({
@@ -754,7 +814,7 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // Simulate 3 incoming professional endorsements from Alice, Marcus, and Elena
+  // Simulate 3 incoming professional endorsements
   const simulateEndorsementsForMe = () => {
     if (!userProfile) return;
 
@@ -766,21 +826,24 @@ export const AppProvider = ({ children }) => {
         endorserName: 'Alice Vance',
         endorserUsername: 'alice_v',
         relation: 'Client',
-        reason: 'Consistently provides high-quality codebase setups and outstanding engineering precision.'
+        reason: 'Consistently provides high-quality codebase setups and outstanding engineering precision.',
+        txHash: '0x32a188f6bdf188e7ae30d089b03f0b06bfeed8f9a918a28e72c0c'
       };
 
       const mockMarcusEndorsement = {
         endorserName: 'Marcus K.',
         endorserUsername: 'marcus_design',
         relation: 'Collaborator',
-        reason: 'Exceptional professional with massive creative capacity and thorough reliability in complex deliverables.'
+        reason: 'Exceptional professional with massive creative capacity and thorough reliability in complex deliverables.',
+        txHash: '0x8f9e0a1dd72d4c0b45fae8e895b309fd13c0ee72bdf492b45f448e895'
       };
 
       const mockElenaEndorsement = {
         endorserName: 'Elena Rostova',
         endorserUsername: 'elena_dev',
         relation: 'Teammate',
-        reason: 'A critical asset to our project research. Brilliant execution under pressure.'
+        reason: 'A critical asset to our project research. Brilliant execution under pressure.',
+        txHash: '0xbc7e3c9c29a6b4ef504c0dbbb77d2fa35eed406bfeedaa26f8d1c2'
       };
 
       setEndorsements(prev => ({
@@ -821,7 +884,7 @@ export const AppProvider = ({ children }) => {
         endorsements: userEndorsements
       });
 
-      setTxStep('Submitting professional application to Poofie Verifier DAO contract...');
+      setTxStep('Submitting professional application to Sepolia Verifier DAO...');
       await web3Mock.sendEVMTransaction(
         wallet.address,
         '0xpoofieverifierdao',
@@ -845,7 +908,7 @@ export const AppProvider = ({ children }) => {
       setTxLoading(false);
       setTxStep('');
 
-      addNotification('success', '⭐ Verified Professional NFT minted! The badge is active on your profile.');
+      addNotification('success', `⭐ Verified Professional NFT minted on Sepolia! Explorer: ${shortenAddress(mintResult.txHash)}`);
       navigate('profile', { username: userProfile.username });
     } catch (e) {
       console.error(e);
@@ -855,7 +918,7 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // Toggle rating restriction simulation in Settings
+  // Toggle rating restriction simulation
   const simulateLowScoreRestriction = (enable) => {
     setLowScoreRestricted(enable);
     if (enable) {
@@ -898,6 +961,7 @@ export const AppProvider = ({ children }) => {
       lowScoreRestricted,
       streakCount,
       SCORE_THRESHOLD,
+      isSepoliaNetwork,
       navigate,
       handleConnectWallet,
       handleDisconnect,
@@ -912,6 +976,7 @@ export const AppProvider = ({ children }) => {
       handleApplyForProfessional,
       simulateLowScoreRestriction,
       triggerDailyQuest,
+      handleSwitchNetwork,
       addNotification,
       addXP
     }}>

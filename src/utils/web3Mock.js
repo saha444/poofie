@@ -1,6 +1,6 @@
 // Web3 Browser Provider & Mock Interface for Poofie
 // Dynamically hooks into browser extension (MetaMask/window.ethereum) for real signatures & addresses
-// Falls back to high-fidelity simulated drivers if no browser extension is found
+// Specifically configured for Sepolia Testnet (Chain ID: 11155111 / 0xaa36a7)
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -120,6 +120,42 @@ export const web3Mock = {
     return typeof window !== 'undefined' && typeof window.ethereum !== 'undefined';
   },
 
+  // Switch chain directly to Sepolia (hex: 0xaa36a7) via MetaMask RPC
+  switchNetworkToSepolia: async () => {
+    if (typeof window !== 'undefined' && typeof window.ethereum !== 'undefined') {
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0xaa36a7' }],
+        });
+        return true;
+      } catch (switchError) {
+        // Error code 4902 indicates that the Sepolia Test Network has not been added to MetaMask
+        if (switchError.code === 4902) {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: '0xaa36a7',
+                chainName: 'Sepolia Test Network',
+                nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
+                rpcUrls: ['https://rpc.sepolia.org'],
+                blockExplorerUrls: ['https://sepolia.etherscan.io']
+              }]
+            });
+            return true;
+          } catch (addError) {
+            console.error('Failed to add Sepolia network to MetaMask', addError);
+            throw addError;
+          }
+        }
+        console.error('Failed to switch to Sepolia network', switchError);
+        throw switchError;
+      }
+    }
+    return false;
+  },
+
   // Connect wallet - prompts MetaMask if present, else simulates it
   connectWallet: async () => {
     const hasProvider = typeof window !== 'undefined' && typeof window.ethereum !== 'undefined';
@@ -151,14 +187,14 @@ export const web3Mock = {
         balance: formattedBalance
       };
     } else {
-      // Simulated fallback
+      // Simulated Sepolia Testnet fallback
       await delay(1200);
       const randomAddress = generateRandomAddress();
       return {
         address: randomAddress,
-        chainId: 1,
-        network: 'Ethereum Mainnet (Simulated)',
-        balance: '2.348 ETH'
+        chainId: 11155111,
+        network: 'Sepolia Testnet (Simulated)',
+        balance: '4.895 ETH'
       };
     }
   },
@@ -198,10 +234,8 @@ export const web3Mock = {
     }
   },
 
-  // Transaction simulation
+  // Transaction simulation returning Sepolia Etherscan formatted details
   sendEVMTransaction: async (fromAddress, contractAddress, data) => {
-    // If provider is present, we could trigger a real transaction, but since this operates locally 
-    // without live testnet deployments, we simulate block confirmations (saving user gas costs)
     await delay(1800);
     const chars = '0123456789abcdef';
     let txHash = '0x';
@@ -211,12 +245,13 @@ export const web3Mock = {
     return {
       txHash,
       status: 'confirmed',
-      blockNumber: Math.floor(Math.random() * 50000) + 17000000,
-      gasUsed: Math.floor(Math.random() * 80000) + 21000
+      blockNumber: Math.floor(Math.random() * 50000) + 5400000, // Sepolia blocks
+      gasUsed: Math.floor(Math.random() * 80000) + 21000,
+      explorerUrl: `https://sepolia.etherscan.io/tx/${txHash}`
     };
   },
 
-  // Mint verification badges NFTs
+  // Mint verification badges NFTs on Sepolia testnet contracts
   mintVerificationBadge: async (userAddress, badgeType) => {
     await delay(2000);
     const chars = '0123456789abcdef';
@@ -236,7 +271,8 @@ export const web3Mock = {
         ? '0x7940e4f49e4d1f2e8c201df1eef00035feed406b' 
         : '0x8f9e0a1dd72d4c0b45fae8e895b309fd13c0ee72',
       txHash,
-      badgeName: badgeType === 'human' ? 'Verified Human ✅' : 'Verified Professional ⭐'
+      badgeName: badgeType === 'human' ? 'Verified Human ✅' : 'Verified Professional ⭐',
+      explorerUrl: `https://sepolia.etherscan.io/tx/${txHash}`
     };
   }
 };

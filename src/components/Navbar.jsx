@@ -21,7 +21,9 @@ export default function Navbar() {
     notifications, 
     handleConnectWallet, 
     handleDisconnect, 
-    navigate 
+    navigate,
+    isSepoliaNetwork,
+    handleSwitchNetwork 
   } = useApp();
   
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
@@ -212,6 +214,49 @@ export default function Navbar() {
                 </div>
               )}
             </div>
+
+            {/* Sepolia Network Badge / Switch CTA */}
+            {wallet.connected && (
+              isSepoliaNetwork ? (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  background: 'rgba(155, 81, 224, 0.1)',
+                  border: '1px solid rgba(155, 81, 224, 0.2)',
+                  borderRadius: '24px',
+                  padding: '4px 12px',
+                  gap: '6px',
+                  fontSize: '0.75rem',
+                  color: 'var(--accent-purple)',
+                  fontWeight: 600
+                }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-purple)', boxShadow: '0 0 6px var(--accent-purple)' }}></span>
+                  <span>Sepolia Testnet</span>
+                </div>
+              ) : (
+                <button
+                  onClick={handleSwitchNetwork}
+                  style={{
+                    padding: '4px 12px',
+                    fontSize: '0.75rem',
+                    background: 'linear-gradient(90deg, #f59e0b 0%, #ef4444 100%)',
+                    color: '#000',
+                    border: 'none',
+                    borderRadius: '24px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontWeight: 700,
+                    boxShadow: '0 0 10px rgba(245, 158, 11, 0.3)'
+                  }}
+                  title="Poofie is deployed on Sepolia. Click to switch networks automatically."
+                >
+                  <AlertTriangle size={12} />
+                  Switch to Sepolia
+                </button>
+              )
+            )}
 
             {/* Wallet Address Display */}
             <div style={{

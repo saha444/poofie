@@ -167,6 +167,17 @@ export default function Feed() {
                       <Layers size={10} />
                       IPFS CID
                     </a>
+                    {post.txHash && (
+                      <a 
+                        href={`https://sepolia.etherscan.io/tx/${post.txHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ fontSize: '0.65rem', color: 'var(--accent-purple)', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none', justifyContent: 'end', marginTop: '4px' }}
+                      >
+                        <Layers size={10} />
+                        Sepolia Tx ↗
+                      </a>
+                    )}
                   </div>
                 </div>
 
