@@ -22,6 +22,8 @@ export default function LandingPage() {
         textAlign: 'center'
       }}>
         <TextScramble
+          duration={1.6}
+          speed={0.05}
           className="text-4xl md:text-5xl font-black text-white"
           style={{
             fontFamily: 'monospace',
@@ -32,6 +34,7 @@ export default function LandingPage() {
         >
           poofie
         </TextScramble>
+
       </div>
 
 
