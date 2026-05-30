@@ -13,6 +13,19 @@ export async function PATCH(req: NextRequest) {
   const userId = session.user.id
   const body = await req.json()
 
+  // Self-healing database check: Recreate User if database was reset
+  const dbUser = await prisma.user.findUnique({ where: { id: userId } })
+  if (!dbUser) {
+    await prisma.user.create({
+      data: {
+        id: userId,
+        name: session.user.name,
+        email: session.user.email,
+        image: session.user.image,
+      }
+    })
+  }
+
   // Update profile interests if provided
   if (body.interests) {
     await prisma.profile.upsert({
@@ -46,7 +59,8 @@ export async function GET() {
 
   const userId = session.user.id
 
-  const user = await prisma.user.findUnique({
+  // Self-healing database check: Recreate User if database was reset
+  let user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
       profile: { include: { skills: true, domains: true } },
@@ -54,6 +68,26 @@ export async function GET() {
       quizResponse: true,
     },
   })
+
+  if (!user) {
+    await prisma.user.create({
+      data: {
+        id: userId,
+        name: session.user.name,
+        email: session.user.email,
+        image: session.user.image,
+      }
+    })
+
+    user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        profile: { include: { skills: true, domains: true } },
+        dnaResult: true,
+        quizResponse: true,
+      },
+    })
+  }
 
   return NextResponse.json({ user })
 }
