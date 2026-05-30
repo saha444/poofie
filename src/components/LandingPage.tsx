@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import PromptingIsAllYouNeed from './PromptingIsAllYouNeed'
+import { SparklesText } from './SparklesText'
 
 export default function LandingPage() {
   const [isFlipped, setIsFlipped] = useState(false)
@@ -11,8 +12,26 @@ export default function LandingPage() {
   return (
     <main style={{ width: '100%', minHeight: '100vh', background: '#030305', position: 'relative', overflow: 'hidden' }}>
       
+      {/* Sparkles Brand Text positioned directly above the pixel game */}
+      <div style={{
+        position: 'absolute',
+        top: '25%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 10,
+        textAlign: 'center'
+      }}>
+        <SparklesText 
+          text="poofie" 
+          className="text-5xl md:text-7xl font-extrabold tracking-widest text-white uppercase"
+          colors={{ first: '#00f2fe', second: '#9b51e0' }}
+          sparklesCount={12}
+        />
+      </div>
+
       {/* Background Interactive Retro Game displaying YOUR DEV ATTRIBUTIONS / AT ONE PLACE */}
       <PromptingIsAllYouNeed />
+
 
       {/* Cyber ambient glow */}
       <div style={{ position: 'absolute', width: '600px', height: '600px', background: 'rgba(0, 242, 254, 0.04)', filter: 'blur(120px)', borderRadius: '50%', pointerEvents: 'none', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1 }} />
