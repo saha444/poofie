@@ -21,7 +21,8 @@ export default function LandingAndAuth() {
     handleConnectWallet, 
     handleAuthVerify, 
     navigate, 
-    activeView 
+    activeView,
+    handleClearDatabase
   } = useApp();
 
   // Auth local state
@@ -295,7 +296,7 @@ export default function LandingAndAuth() {
         <p className="hero-subtitle">
           Build your verified digital identity and reputation on-chain. Poofie combines wallet ownership, email credentials, peer endorsements, and professional reviews into a portable, decentralized reputation score.
         </p>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
           <button onClick={handleConnectWallet} className="btn-primary">
             <Wallet size={18} />
             Connect Web3 Wallet
@@ -303,6 +304,24 @@ export default function LandingAndAuth() {
           <a href="#how" className="btn-secondary">
             Learn More
           </a>
+        </div>
+        <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
+          <button 
+            type="button"
+            onClick={handleClearDatabase}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text-dim)',
+              fontSize: '0.75rem',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              fontFamily: 'var(--font-body)',
+              transition: 'var(--transition-smooth)'
+            }}
+          >
+            Reset Sandbox Database (Wipe Local Storage)
+          </button>
         </div>
       </section>
 

@@ -11,7 +11,8 @@ import {
   Layers, 
   CheckCircle, 
   Award, 
-  AlertTriangle 
+  AlertTriangle,
+  Trash2
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -23,7 +24,8 @@ export default function Navbar() {
     handleDisconnect, 
     navigate,
     isSepoliaNetwork,
-    handleSwitchNetwork 
+    handleSwitchNetwork,
+    handleClearDatabase
   } = useApp();
   
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
@@ -295,6 +297,23 @@ export default function Navbar() {
                 />
               </div>
             )}
+
+            {/* Reset Sandbox */}
+            <button 
+              onClick={handleClearDatabase}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#ef4444',
+                cursor: 'pointer',
+                transition: 'var(--transition-smooth)',
+                padding: '4px',
+                marginRight: '8px'
+              }}
+              title="Reset Sandbox Database (Wipe Local Storage)"
+            >
+              <Trash2 size={18} />
+            </button>
 
             {/* Logout */}
             <button 
