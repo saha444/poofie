@@ -33,7 +33,7 @@ export default function Sidebar() {
       <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', height: 'fit-content' }}>
         <h3 style={{ fontFamily: 'var(--font-heading)', color: 'var(--accent-cyan)' }}>Join Poofie</h3>
         <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-          Connect your Web3 wallet and complete the DNA quiz to establish your persistent Developer DNA on-chain.
+          Authenticate your credentials and complete the DNA quiz to establish your persistent Developer DNA.
         </p>
         <div style={{ padding: '16px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '12px', border: '1px solid var(--border-light)' }}>
           <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '8px' }}>Identity Capabilities:</span>

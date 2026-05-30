@@ -62,7 +62,7 @@ const INITIAL_POSTS = [
     creatorName: 'Poofie Protocol',
     creatorAvatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150',
     type: 'League Launch',
-    title: 'AI Builder League Season 2 is Officially Live! 🚀',
+    title: 'AI Builder League Season 2 is Live! 🚀',
     description: 'Get ready for 14 days of intense AI project building. Deploy working AI agents, submit your GitHub repositories, and earn the exclusive "Agent Architect" badge!',
     tags: ['AI-Agents', 'Hackathon', 'LLM', 'Competitive'],
     leagues: 'System Alert',
@@ -162,10 +162,10 @@ export const AppProvider = ({ children }) => {
   const [activeView, setActiveView] = useState('landing');
   const [viewParams, setViewParams] = useState({});
 
-  // Wallet State
-  const [wallet, setWallet] = useState(() => {
-    const saved = localStorage.getItem('poofie_wallet');
-    return saved ? JSON.parse(saved) : { connected: false, address: '', balance: '0.00 ETH' };
+  // Session Authentication State (No Web3)
+  const [session, setSession] = useState(() => {
+    const saved = localStorage.getItem('poofie_session');
+    return saved ? JSON.parse(saved) : { authenticated: false, email: '' };
   });
 
   // User Profile
@@ -194,7 +194,7 @@ export const AppProvider = ({ children }) => {
     ];
   });
 
-  // Streak & Restrictions
+  // Streak Count
   const [streakCount, setStreakCount] = useState(() => {
     const saved = localStorage.getItem('poofie_streakCount');
     return saved ? parseInt(saved) : 0;
@@ -206,15 +206,15 @@ export const AppProvider = ({ children }) => {
 
   // Auto-route on mount
   useEffect(() => {
-    if (wallet.connected && userProfile) {
+    if (session.authenticated && userProfile) {
       setActiveView('feed');
     }
   }, []);
 
   // Sync state to local storage
   useEffect(() => {
-    localStorage.setItem('poofie_wallet', JSON.stringify(wallet));
-  }, [wallet]);
+    localStorage.setItem('poofie_session', JSON.stringify(session));
+  }, [session]);
 
   useEffect(() => {
     localStorage.setItem('poofie_userProfile', JSON.stringify(userProfile));
@@ -290,45 +290,24 @@ export const AppProvider = ({ children }) => {
     setTimeout(() => feedback.remove(), 1800);
   };
 
-  // Connect Wallet
-  const handleConnectWallet = async () => {
-    setTxLoading(true);
-    setTxStep('Initializing Web3 Signature Attestation...');
-    
-    // Simulate slight lag for metamask visual effect
-    setTimeout(() => {
-      setWallet({
-        connected: true,
-        address: '0x32A7d1d2bC39E92d192B45f448e895B309fD13c0',
-        balance: '4.82 ETH'
-      });
-      setTxLoading(false);
-      setTxStep('');
-      
-      const savedProfile = localStorage.getItem('poofie_userProfile');
-      if (savedProfile) {
-        addNotification('success', 'Wallet connected. Loading your Developer DNA.');
-        navigate('feed');
-      } else {
-        addNotification('system', 'Wallet authenticated. Complete the Developer DNA Quiz.');
-        navigate('auth');
-      }
-    }, 1200);
+  // Start Auth Flow
+  const handleStartAuth = () => {
+    navigate('auth');
   };
 
-  // Disconnect
+  // Disconnect / Log out
   const handleDisconnect = () => {
-    setWallet({ connected: false, address: '', balance: '0.00 ETH' });
+    setSession({ authenticated: false, email: '' });
     setUserProfile(null);
     setStreakCount(0);
     navigate('landing');
-    addNotification('system', 'Wallet disconnected.');
+    addNotification('system', 'Logged out successfully.');
   };
 
   // Database Reset
   const handleClearDatabase = () => {
     localStorage.clear();
-    setWallet({ connected: false, address: '', balance: '0.00 ETH' });
+    setSession({ authenticated: false, email: '' });
     setUserProfile(null);
     setSystemUsers(MOCK_DEVELOPERS);
     setPosts(INITIAL_POSTS);
@@ -340,14 +319,15 @@ export const AppProvider = ({ children }) => {
     alert('Sandbox database has been reset successfully!');
   };
 
-  // Finish verification & Onboarding Auth
-  const handleAuthVerify = (email, phone, usernameInput) => {
-    // Generate initial blank profile, then navigate to DNA Quiz
+  // Email/Phone credentials claimed
+  const handleAuthVerify = (emailVal, phoneVal, usernameInput) => {
+    setSession({ authenticated: false, email: emailVal });
+    
     const newProfile = {
       name: usernameInput.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
       username: usernameInput || 'new_user',
       avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
-      bio: 'Ready to discover my Developer DNA.',
+      bio: 'Authenticating with developer tools.',
       skills: [],
       projects: [],
       poofieXP: 300,
@@ -369,15 +349,45 @@ export const AppProvider = ({ children }) => {
       }
     };
     setUserProfile(newProfile);
-    addNotification('success', 'Credentials authenticated. Proceed to the DNA Quiz.');
+    addNotification('success', 'Email & Phone OTP verified. Mapped handle successfully!');
+  };
+
+  // Connect platform account
+  const handleConnectAccount = (platform, usernameVal) => {
+    if (!userProfile) return;
+    
+    let mockStats = {};
+    if (platform === 'github') {
+      mockStats = { connected: true, username: usernameVal || 'satoshi', repos: 18, stars: 45, contributions: 310 };
+    } else if (platform === 'leetcode') {
+      mockStats = { connected: true, username: usernameVal || 'satoshi_lc', solved: 210, contestRating: 1650 };
+    } else if (platform === 'devfolio') {
+      mockStats = { connected: true, username: usernameVal || 'satoshidev', hackathons: 4, awards: 1 };
+    } else if (platform === 'linkedin') {
+      mockStats = { connected: true, username: usernameVal || 'satoshi-nakamoto' };
+    }
+
+    setUserProfile(prev => ({
+      ...prev,
+      connectedAccounts: {
+        ...prev.connectedAccounts,
+        [platform]: mockStats
+      }
+    }));
+
+    // authenticate session on connecting at least one platform!
+    setSession(prev => ({
+      ...prev,
+      authenticated: true
+    }));
+
+    addNotification('success', `Connected external profile: ${platform.toUpperCase()} (@${usernameVal}). Authentication complete!`);
   };
 
   // Set computed DNA from quiz
-  const handleDNAQuizCompletion = (traitScores, connectedAccts) => {
-    // Compute DNA
+  const handleDNAQuizCompletion = (traitScores) => {
     const sortedTraits = Object.entries(traitScores).sort((a, b) => b[1] - a[1]);
     
-    // Trait translation map (Builder -> Maker, Strategist -> Strategist...)
     const traitToDna = {
       Builder: 'Maker',
       Architect: 'Architect',
@@ -401,10 +411,6 @@ export const AppProvider = ({ children }) => {
         traitScores,
         dnaType: primaryDNA,
         secondaryDnaType: secondaryDNA,
-        connectedAccounts: {
-          ...prev.connectedAccounts,
-          ...connectedAccts
-        },
         poofieXP: prev.poofieXP + 500
       };
       return updated;
@@ -413,9 +419,8 @@ export const AppProvider = ({ children }) => {
     addNotification('success', `AI Developer DNA Generated: You are a ${primaryDNA} (Secondary: ${secondaryDNA})!`);
   };
 
-  // Complete Domain and Specialization Onboarding
+  // Complete Domain Setup
   const handleCompleteDomainSetup = (domainsSelected, specialization, clanToJoin) => {
-    // Assign skills based on selected specialization
     let baseSkills = [];
     if (specialization.includes('Architect') || specialization.includes('Backend')) {
       baseSkills = ['Node.js', 'FastAPI', 'Python', 'Docker', 'Systems Design'];
@@ -427,7 +432,6 @@ export const AppProvider = ({ children }) => {
       baseSkills = ['Rust', 'Go', 'Linux CLI', 'Solidity', 'Git'];
     }
 
-    // Default project for satoshi
     const baseProjects = [
       { id: 'sp-1', name: 'Open Attestation Nodes', desc: 'Decentralized parser mapping code signatures to persona attributes.', tech: baseSkills.slice(0, 3).join(', ') }
     ];
@@ -442,7 +446,7 @@ export const AppProvider = ({ children }) => {
         skills: baseSkills,
         projects: baseProjects,
         poofieXP: prev.poofieXP + 400,
-        bio: `${specialization} specializing in ${domainsSelected.join(' & ')}. Exploring ${clanToJoin}.`
+        bio: `${specialization} specializing in ${domainsSelected.join(' & ')}. Member of ${clanToJoin}.`
       };
       return updated;
     });
@@ -476,14 +480,13 @@ export const AppProvider = ({ children }) => {
     navigate('feed');
   };
 
-  // Sandbox Persona Switcher
+  // Sandbox Switcher
   const triggerSandboxSwitch = (username) => {
     if (username === 'satoshi') {
       const savedSatoshi = localStorage.getItem('poofie_satoshiBackup');
       if (savedSatoshi) {
         setUserProfile(JSON.parse(savedSatoshi));
       } else {
-        // default satoshi
         setUserProfile({
           name: 'Satoshi Nakamoto',
           username: 'satoshi',
@@ -509,12 +512,12 @@ export const AppProvider = ({ children }) => {
           }
         });
       }
-      addNotification('system', 'Switched session to Satoshi Nakamoto (Your Custom Profile).');
+      setSession({ authenticated: true, email: 'satoshi@bitcoin.org' });
+      addNotification('system', 'Switched session to Satoshi Nakamoto (Your Profile).');
       navigate('feed');
       return;
     }
 
-    // Backup current satoshi if it exists and is custom
     if (userProfile && userProfile.username === 'satoshi') {
       localStorage.setItem('poofie_satoshiBackup', JSON.stringify(userProfile));
     }
@@ -522,6 +525,7 @@ export const AppProvider = ({ children }) => {
     const dev = systemUsers.find(d => d.username === username);
     if (dev) {
       setUserProfile(dev);
+      setSession({ authenticated: true, email: `${username}@poofie.net` });
       addNotification('system', `Switched session to Sandbox Persona: ${dev.name} (${dev.dnaType} DNA)`);
       navigate('feed');
     }
@@ -542,7 +546,7 @@ export const AppProvider = ({ children }) => {
     addNotification('success', `Welcome to the ${clanName} Clan! You have unlocked their discussions and resources.`);
   };
 
-  // Apply / Send DNA Card to Opportunity Request
+  // Apply to Opportunity
   const handleApplyToOpportunity = (postId) => {
     if (!userProfile) return;
     const post = posts.find(p => p.id === postId);
@@ -556,19 +560,16 @@ export const AppProvider = ({ children }) => {
       setTxStep('');
       addXP(80, `Applied to: ${post.title}`);
       addNotification('success', `Sent your Developer DNA Profile Card to @${post.creatorUsername}! Your skills, domain specialization, and DNA matches have been submitted.`);
-      
-      // Update local storage streak and award XP
       setStreakCount(prev => prev + 1);
-    }, 1500);
+    }, 1200);
   };
 
-  // Complete a simulated quiz challenge or daily checkin
+  // Daily quest streak
   const triggerDailyQuest = () => {
     if (!userProfile) return;
     addXP(100, 'Completed daily sandbox check-in');
     setStreakCount(prev => prev + 1);
     
-    // Add a cool modifier badge after a 3 day streak
     if (streakCount >= 2 && !userProfile.badges.includes('Weekend Warrior ⚔️')) {
       setUserProfile(prev => ({
         ...prev,
@@ -580,37 +581,12 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // Connect specific external platform profile
-  const handleConnectAccount = (platform, usernameVal) => {
-    if (!userProfile) return;
-    
-    let mockStats = {};
-    if (platform === 'github') {
-      mockStats = { connected: true, username: usernameVal || 'satoshi', repos: 18, stars: 45, contributions: 310 };
-    } else if (platform === 'leetcode') {
-      mockStats = { connected: true, username: usernameVal || 'satoshi_lc', solved: 210, contestRating: 1650 };
-    } else if (platform === 'devfolio') {
-      mockStats = { connected: true, username: usernameVal || 'satoshidev', hackathons: 4, awards: 1 };
-    } else if (platform === 'linkedin') {
-      mockStats = { connected: true, username: usernameVal || 'satoshi-nakamoto' };
-    }
-
-    setUserProfile(prev => ({
-      ...prev,
-      connectedAccounts: {
-        ...prev.connectedAccounts,
-        [platform]: mockStats
-      }
-    }));
-
-    addNotification('success', `Connected external profile: ${platform.toUpperCase()} (@${usernameVal})`);
-  };
-
   return (
     <AppContext.Provider value={{
       activeView,
       viewParams,
-      wallet,
+      session,
+      wallet: { connected: session.authenticated }, // Backwards compatibility for App.jsx layout calculations
       userProfile,
       systemUsers,
       posts,
@@ -620,7 +596,7 @@ export const AppProvider = ({ children }) => {
       txStep,
       streakCount,
       navigate,
-      handleConnectWallet,
+      handleStartAuth,
       handleDisconnect,
       handleClearDatabase,
       handleAuthVerify,

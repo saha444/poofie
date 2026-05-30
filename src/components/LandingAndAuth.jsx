@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
-  Wallet, 
   Mail, 
   Smartphone, 
   UserCheck, 
@@ -10,21 +9,19 @@ import {
   Sparkles,
   GitFork,
   Briefcase,
-  Terminal,
-  Cpu,
-  Layers,
-  Compass,
   Trophy,
   Users,
   Star,
   Activity,
-  Code
+  Code,
+  ShieldAlert,
+  Cpu
 } from 'lucide-react';
 
 export default function LandingAndAuth() {
   const { 
-    wallet, 
-    handleConnectWallet, 
+    session,
+    handleStartAuth, 
     handleAuthVerify, 
     handleDNAQuizCompletion,
     handleCompleteDomainSetup,
@@ -35,7 +32,7 @@ export default function LandingAndAuth() {
     systemUsers
   } = useApp();
 
-  // Auth local state
+  // Onboarding local state
   const [email, setEmail] = useState('');
   const [emailCode, setEmailCode] = useState('');
   const [emailVerified, setEmailVerified] = useState(false);
@@ -45,14 +42,14 @@ export default function LandingAndAuth() {
   const [username, setUsername] = useState('');
   
   // Stepper navigation
-  const [onboardStep, setOnboardStep] = useState('otp'); // 'otp', 'dna_quiz', 'connect_profiles', 'ai_analysis', 'dna_reveal', 'domain_setup', 'clan_league'
+  const [onboardStep, setOnboardStep] = useState('otp'); // 'otp', 'connect_profiles', 'dna_quiz', 'ai_analysis', 'dna_reveal', 'domain_setup', 'clan_league'
   const [loading, setLoading] = useState(false);
 
-  // OTP helpers
+  // OTP simulation states
   const [emailCodeSent, setEmailCodeSent] = useState(false);
   const [phoneCodeSent, setPhoneCodeSent] = useState(false);
 
-  // --- DNA QUIZ LOCAL STATE ---
+  // --- DNA QUIZ STATE ---
   const [currentDnaQ, setCurrentDnaQ] = useState(0);
   const [dnaAnswers, setDnaAnswers] = useState({
     Builder: 0, Explorer: 0, Strategist: 0, Architect: 0, Scholar: 0, Catalyst: 0, Craftsman: 0, Alchemist: 0
@@ -144,7 +141,7 @@ export default function LandingAndAuth() {
     { id: 'Competitive', name: 'Competitive Programming ♟️', desc: 'Algorithms, LeetCode, fast problem solving' }
   ];
 
-  // OTP functions
+  // OTP handlers
   const handleSendEmailCode = () => {
     if (!email) return alert('Please enter a valid email.');
     setLoading(true);
@@ -182,10 +179,10 @@ export default function LandingAndAuth() {
   const handleFinishOTPStep = () => {
     if (username.length < 3) return alert('Handle must be at least 3 characters.');
     handleAuthVerify(email, phone, username.trim().toLowerCase());
-    setOnboardStep('dna_quiz');
+    setOnboardStep('connect_profiles');
   };
 
-  // DNA Quiz functions
+  // DNA Quiz answerselect
   const handleDnaAnswerSelect = (trait, weight) => {
     setDnaAnswers(prev => ({
       ...prev,
@@ -195,11 +192,11 @@ export default function LandingAndAuth() {
     if (currentDnaQ < DNA_QUIZ_QUESTIONS.length - 1) {
       setCurrentDnaQ(prev => prev + 1);
     } else {
-      setOnboardStep('connect_profiles');
+      triggerAIEngineAnalysis();
     }
   };
 
-  // Connect platform mock prompt
+  // Connect platform prompt
   const openConnectPrompt = (platform) => {
     setActivePromptPlatform(platform);
     setPlatformUsernameInput('');
@@ -215,7 +212,7 @@ export default function LandingAndAuth() {
     setActivePromptPlatform(null);
   };
 
-  // Trigger AI Engine Parser Logs
+  // DNA calculation and loading log matrix
   const triggerAIEngineAnalysis = () => {
     setOnboardStep('ai_analysis');
     setTerminalLogs([]);
@@ -228,11 +225,11 @@ export default function LandingAndAuth() {
       `[GITHUB] Connecting repository parser indexer...`,
       connectedProfiles.github.connected 
         ? `[GITHUB] Synced Profile @${connectedProfiles.github.username}: Found 40 active repos, 1024 stars, 1200 contributions.`
-        : `[GITHUB] No external repo profile mapped. Generating baseline compiler vectors...`,
+        : `[GITHUB] Baseline profile analysis mapped.`,
       `[LEETCODE] Evaluating algorithmic problem complexities...`,
       connectedProfiles.leetcode.connected
         ? `[LEETCODE] Mapped account @${connectedProfiles.leetcode.username}: 210 challenges solved, Top 12% global rating.`
-        : `[LEETCODE] No contest metadata found.`,
+        : `[LEETCODE] Standard algorithms mapping completed.`,
       `[DEVFOLIO] Searching registered hackathon team submissions...`,
       connectedProfiles.devfolio.connected
         ? `[DEVFOLIO] Connected @${connectedProfiles.devfolio.username}: Finalist at Hack4Bengal, 4 projects indexed.`
@@ -250,15 +247,14 @@ export default function LandingAndAuth() {
       } else {
         clearInterval(interval);
         setTimeout(() => {
-          // Compute DNA and pass trait scores
-          handleDNAQuizCompletion(dnaAnswers, connectedProfiles);
+          handleDNAQuizCompletion(dnaAnswers);
           setOnboardStep('dna_reveal');
         }, 1200);
       }
     }, 450);
   };
 
-  // Domain specific role quiz trigger
+  // Domain selection
   const handleDomainSelect = (domainId) => {
     if (selectedDomains.includes(domainId)) {
       setSelectedDomains(prev => prev.filter(d => d !== domainId));
@@ -275,7 +271,6 @@ export default function LandingAndAuth() {
   const handleRoleAnswerSelect = (answer) => {
     setDomainRoleAnswer(answer);
     
-    // Compute specialization based on choice
     let specialization = 'Full Stack Developer';
     let clanName = 'Frontend Guild';
 
@@ -312,6 +307,9 @@ export default function LandingAndAuth() {
     handleCompleteDomainSetup(selectedDomains, generatedSpecialization, selectedClan);
   };
 
+  // Determine if at least one platform connected during onboarding
+  const hasConnectedPlatform = Object.values(connectedProfiles).some(p => p.connected);
+
   // --- RENDER VISITOR LANDING PAGE ---
   if (activeView === 'landing') {
     return (
@@ -325,13 +323,13 @@ export default function LandingAndAuth() {
 
           <h1 className="hero-title">Discover Your true Developer DNA.</h1>
           <p className="hero-subtitle">
-            Poofie parses your learning habits, hackathon achievements, and coding activity to compile a living Developer DNA profile. Find your tribe, locate compatible teammates, and explore meaningful collaborations on-chain.
+            Poofie parses your learning habits, hackathon achievements, and coding activity to compile a living Developer DNA profile. Find your tribe, locate compatible teammates, and explore meaningful collaborations.
           </p>
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
-            <button onClick={handleConnectWallet} className="btn-primary" style={{ padding: '14px 28px', fontSize: '0.95rem' }}>
-              <Wallet size={18} />
-              Connect Web3 Wallet
+            <button onClick={handleStartAuth} className="btn-primary" style={{ padding: '14px 28px', fontSize: '0.95rem' }}>
+              <Sparkles size={18} />
+              Get Started / Claim Your DNA
             </button>
             <a href="#dna-types" className="btn-secondary" style={{ padding: '14px 28px', fontSize: '0.95rem' }}>
               Explore DNA Types
@@ -420,7 +418,7 @@ export default function LandingAndAuth() {
             Meet our Sandbox Developers
           </h2>
           <p style={{ color: 'var(--text-muted)', textAlign: 'center', fontSize: '0.9rem', marginBottom: '48px' }}>
-            Interact with rich pre-built identities immediately. Connect your wallet to switch personas!
+            Interact with rich pre-built identities immediately. Connect and switch sandbox personas!
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
@@ -443,10 +441,10 @@ export default function LandingAndAuth() {
 
                 <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '12px', display: 'flex', justifyContent: 'between', alignItems: 'center' }}>
                   <div>
-                    <span style={{ fontSize: '0.6rem', color: 'var(--text-dim)', display: 'block' }}>CLAN</span>
+                    <span style={{ fontSize: '0.6', color: 'var(--text-dim)', display: 'block' }}>CLAN</span>
                     <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-main)' }}>{user.clan}</span>
                   </div>
-                  <button onClick={handleConnectWallet} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.7rem' }}>
+                  <button onClick={handleStartAuth} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.7rem' }}>
                     View Profile
                   </button>
                 </div>
@@ -472,21 +470,21 @@ export default function LandingAndAuth() {
           </span>
           
           <h2 style={{ fontSize: '1.6rem', marginTop: '4px', fontFamily: 'var(--font-heading)' }}>
-            {onboardStep === 'otp' && 'Verify Credentials'}
+            {onboardStep === 'otp' && 'Verify Email & Phone Credentials'}
+            {onboardStep === 'connect_profiles' && 'Authenticate Developer Platforms'}
             {onboardStep === 'dna_quiz' && `Developer DNA Assessment (${currentDnaQ + 1}/6)`}
-            {onboardStep === 'connect_profiles' && 'Connect Platforms'}
             {onboardStep === 'ai_analysis' && 'AI Identity Analysis'}
-            {onboardStep === 'dna_reveal' && 'Your Developer DNA DNA Type'}
+            {onboardStep === 'dna_reveal' && 'Your Developer DNA Archetype'}
             {onboardStep === 'domain_setup' && 'Choose Your Focus Domain'}
             {onboardStep === 'clan_league' && 'Domain Specialization Quiz'}
           </h2>
         </div>
 
-        {/* --- STEP 1: OTP CREDENTIALS --- */}
+        {/* --- STEP 1: CREDENTIALS OTP --- */}
         {onboardStep === 'otp' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-              Verify your basic email & phone details. This establishes the initial contact metadata.
+              Authenticate your email and phone number. Mock OTP codes are any 6-digit sequence (e.g. `123456`).
             </p>
 
             {/* Email OTP */}
@@ -554,7 +552,7 @@ export default function LandingAndAuth() {
                       value={phoneCode}
                       onChange={(e) => setPhoneCode(e.target.value)}
                       className="input-field" 
-                    />
+                  />
                     <button onClick={handleVerifyPhone} className="btn-primary" style={{ whiteSpace: 'nowrap' }}>Verify</button>
                   </div>
                 )}
@@ -567,7 +565,7 @@ export default function LandingAndAuth() {
               </div>
             )}
 
-            {/* Claim Handle */}
+            {/* Handle Claim */}
             {phoneVerified && (
               <div>
                 <label style={{ fontSize: '0.7rem', color: 'var(--text-dim)', display: 'block', marginBottom: '6px' }}>CHOOSE DEVELOPER HANDLE</label>
@@ -587,14 +585,116 @@ export default function LandingAndAuth() {
 
             {phoneVerified && username.length >= 3 && (
               <button onClick={handleFinishOTPStep} className="btn-primary" style={{ justifyContent: 'center', marginTop: '10px' }}>
-                Next: Take Developer DNA Assessment
+                Next: Connect Mapped Developer Accounts
                 <ArrowRight size={16} />
               </button>
             )}
           </div>
         )}
 
-        {/* --- STEP 2: DNA QUIZ QUESTIONNAIRE --- */}
+        {/* --- STEP 2: CONNECT PLATFORMS LOGIN AUTH --- */}
+        {onboardStep === 'connect_profiles' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+              Connect your developer profiles to authenticate your session. **Link at least 1 account** to authorize your identity registration.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {/* GitHub */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'between', padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <GitFork size={20} style={{ color: 'var(--accent-cyan)' }} />
+                  <div>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'block', color: 'var(--text-main)' }}>GitHub Authentication</span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
+                      {connectedProfiles.github.connected ? `@${connectedProfiles.github.username} connected` : 'Authorize session with Github repo index'}
+                    </span>
+                  </div>
+                </div>
+                {connectedProfiles.github.connected ? (
+                  <span style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}><Check size={14} /> Synced</span>
+                ) : (
+                  <button onClick={() => openConnectPrompt('github')} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.75rem' }}>Authorize</button>
+                )}
+              </div>
+
+              {/* LeetCode */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'between', padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Code size={20} style={{ color: 'var(--accent-purple)' }} />
+                  <div>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'block', color: 'var(--text-main)' }}>LeetCode Authentication</span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
+                      {connectedProfiles.leetcode.connected ? `@${connectedProfiles.leetcode.username} connected` : 'Authorize with contest metrics'}
+                    </span>
+                  </div>
+                </div>
+                {connectedProfiles.leetcode.connected ? (
+                  <span style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}><Check size={14} /> Synced</span>
+                ) : (
+                  <button onClick={() => openConnectPrompt('leetcode')} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.75rem' }}>Authorize</button>
+                )}
+              </div>
+
+              {/* LinkedIn */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'between', padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Briefcase size={20} style={{ color: '#0072b1' }} />
+                  <div>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'block', color: 'var(--text-main)' }}>LinkedIn Authentication</span>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
+                      {connectedProfiles.linkedin.connected ? `@${connectedProfiles.linkedin.username} connected` : 'Authorize with professional credentials'}
+                    </span>
+                  </div>
+                </div>
+                {connectedProfiles.linkedin.connected ? (
+                  <span style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}><Check size={14} /> Synced</span>
+                ) : (
+                  <button onClick={() => openConnectPrompt('linkedin')} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.75rem' }}>Authorize</button>
+                )}
+              </div>
+            </div>
+
+            {/* Prompt for username */}
+            {activePromptPlatform && (
+              <div style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', border: '1px solid var(--accent-cyan)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <label style={{ fontSize: '0.7rem', color: 'var(--accent-cyan)', fontWeight: 700 }}>AUTHORIZE {activePromptPlatform.toUpperCase()} ATTRIBUTIONS</label>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <input 
+                    type="text" 
+                    placeholder={`e.g. satoshi_dev`} 
+                    value={platformUsernameInput}
+                    onChange={(e) => setPlatformUsernameInput(e.target.value)}
+                    className="input-field" 
+                  />
+                  <button onClick={submitConnectAccount} className="btn-primary" style={{ whiteSpace: 'nowrap' }}>Authorize</button>
+                </div>
+              </div>
+            )}
+
+            {hasConnectedPlatform ? (
+              <button onClick={() => setOnboardStep('dna_quiz')} className="btn-primary" style={{ justifyContent: 'center', marginTop: '10px' }}>
+                Start Developer DNA Quiz
+                <ArrowRight size={16} />
+              </button>
+            ) : (
+              <div style={{
+                background: 'rgba(239, 68, 68, 0.05)',
+                border: '1px dashed rgba(239, 68, 68, 0.2)',
+                borderRadius: '8px',
+                padding: '12px',
+                color: '#fca5a5',
+                fontSize: '0.75rem',
+                textAlign: 'center',
+                marginTop: '10px'
+              }}>
+                Please authorize with at least one developer profile to authenticate your identity registration.
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* --- STEP 3: DNA QUIZ QUESTIONS --- */}
         {onboardStep === 'dna_quiz' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden', marginBottom: '10px' }}>
@@ -633,112 +733,7 @@ export default function LandingAndAuth() {
           </div>
         )}
 
-        {/* --- STEP 3: CONNECT PROFILES --- */}
-        {onboardStep === 'connect_profiles' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-              Connect external developer profiles. Poofie AI parses your real commits, algorithm statistics, and awards to customize your identity scores.
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {/* GitHub */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'between', padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <GitFork size={20} style={{ color: 'var(--accent-cyan)' }} />
-                  <div>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'block', color: 'var(--text-main)' }}>GitHub Profile</span>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
-                      {connectedProfiles.github.connected ? `@${connectedProfiles.github.username} synced` : 'Verify contributions, repos, and stars'}
-                    </span>
-                  </div>
-                </div>
-                {connectedProfiles.github.connected ? (
-                  <span style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}><Check size={14} /> Synced</span>
-                ) : (
-                  <button onClick={() => openConnectPrompt('github')} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.75rem' }}>Connect</button>
-                )}
-              </div>
-
-              {/* LeetCode */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'between', padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Code size={20} style={{ color: 'var(--accent-purple)' }} />
-                  <div>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'block', color: 'var(--text-main)' }}>LeetCode Tracker</span>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
-                      {connectedProfiles.leetcode.connected ? `@${connectedProfiles.leetcode.username} synced` : 'Pull problems solved and contest ratings'}
-                    </span>
-                  </div>
-                </div>
-                {connectedProfiles.leetcode.connected ? (
-                  <span style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}><Check size={14} /> Synced</span>
-                ) : (
-                  <button onClick={() => openConnectPrompt('leetcode')} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.75rem' }}>Connect</button>
-                )}
-              </div>
-
-              {/* Devfolio */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'between', padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Trophy size={20} style={{ color: '#f59e0b' }} />
-                  <div>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'block', color: 'var(--text-main)' }}>Devfolio Hackathons</span>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
-                      {connectedProfiles.devfolio.connected ? `@${connectedProfiles.devfolio.username} synced` : 'Sync hackathon listings and winning history'}
-                    </span>
-                  </div>
-                </div>
-                {connectedProfiles.devfolio.connected ? (
-                  <span style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}><Check size={14} /> Synced</span>
-                ) : (
-                  <button onClick={() => openConnectPrompt('devfolio')} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.75rem' }}>Connect</button>
-                )}
-              </div>
-
-              {/* LinkedIn */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'between', padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Briefcase size={20} style={{ color: '#0072b1' }} />
-                  <div>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'block', color: 'var(--text-main)' }}>LinkedIn Professional</span>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
-                      {connectedProfiles.linkedin.connected ? `@${connectedProfiles.linkedin.username} synced` : 'Pull workspace context, details, and education'}
-                    </span>
-                  </div>
-                </div>
-                {connectedProfiles.linkedin.connected ? (
-                  <span style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px' }}><Check size={14} /> Synced</span>
-                ) : (
-                  <button onClick={() => openConnectPrompt('linkedin')} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.75rem' }}>Connect</button>
-                )}
-              </div>
-            </div>
-
-            {/* Account connection prompt modal */}
-            {activePromptPlatform && (
-              <div style={{ padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', border: '1px solid var(--accent-cyan)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <label style={{ fontSize: '0.7rem', color: 'var(--accent-cyan)', fontWeight: 700 }}>CONNECT {activePromptPlatform.toUpperCase()} USERNAME</label>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <input 
-                    type="text" 
-                    placeholder={`e.g. satoshi_nakamoto`} 
-                    value={platformUsernameInput}
-                    onChange={(e) => setPlatformUsernameInput(e.target.value)}
-                    className="input-field" 
-                  />
-                  <button onClick={submitConnectAccount} className="btn-primary" style={{ whiteSpace: 'nowrap' }}>Confirm</button>
-                </div>
-              </div>
-            )}
-
-            <button onClick={triggerAIEngineAnalysis} className="btn-primary" style={{ justifyContent: 'center', marginTop: '10px' }}>
-              Run AI Identity Engine Analysis
-              <ArrowRight size={16} />
-            </button>
-          </div>
-        )}
-
-        {/* --- STEP 4: AI ANALYSIS LOADER MATRIX --- */}
+        {/* --- STEP 4: AI ANALYSIS MATRIX LOADER --- */}
         {onboardStep === 'ai_analysis' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
@@ -771,7 +766,7 @@ export default function LandingAndAuth() {
           </div>
         )}
 
-        {/* --- STEP 5: DNA REVEAL TROPHY PANEL --- */}
+        {/* --- STEP 5: DNA TROPHY REVEAL --- */}
         {onboardStep === 'dna_reveal' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', alignItems: 'center', textAlign: 'center' }}>
             <div style={{
@@ -870,7 +865,7 @@ export default function LandingAndAuth() {
           </div>
         )}
 
-        {/* --- STEP 7: ROLE QUIZ & CLAN STARTER --- */}
+        {/* --- STEP 7: Domain Role Quiz --- */}
         {onboardStep === 'domain_setup' && roleQuizStep === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {selectedDomains.includes('AI') ? (
