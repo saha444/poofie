@@ -47,7 +47,7 @@ export default function XPProgress() {
     },
     {
       id: 'hackathon',
-      name: 'Hackathon League 🏆',
+      name: 'Hackathon League',
       currentRank: userProfile.leagues?.hackathon || 'Bronze',
       icon: <Trophy size={20} style={{ color: '#f59e0b' }} />,
       desc: 'Tracks mock team registrations, finalist listings, and podium podium awards.',
@@ -59,7 +59,7 @@ export default function XPProgress() {
     },
     {
       id: 'opensource',
-      name: 'Open Source League 🔓',
+      name: 'Open Source League',
       currentRank: userProfile.leagues?.openSource || 'Bronze',
       icon: <Code size={20} style={{ color: 'var(--accent-purple)' }} />,
       desc: 'Tracks mock pull-request merges, code evaluations, and public tooling contributions.',
@@ -73,12 +73,12 @@ export default function XPProgress() {
 
   // Unlocked Modifiers (Personality Badges)
   const badgesList = [
-    { name: 'Night Owl 🌙', desc: 'Awarded to developers who submit commits or code ratings between 12:00 AM and 5:00 AM.', unlocked: true },
-    { name: 'Bug Hunter 🐞', desc: 'Awarded for deconstructing and reviewing EVM vault circuits or resolving compiler audits.', unlocked: userProfile.level >= 2 },
-    { name: 'Weekend Warrior ⚔️', desc: 'Awarded for keeping streaks and check-ins active over Saturday & Sunday.', unlocked: streakCount >= 3 },
-    { name: 'Research Enthusiast 📚', desc: 'Awarded for exploring cryptography and zero-knowledge reputation architectures.', unlocked: userProfile.dnaType === 'Scholar' || userProfile.secondaryDnaType === 'Scholar' },
-    { name: 'Catalyst Glue ⚡', desc: 'Awarded for active mentorship and coordinating multiple clan collaborations.', unlocked: userProfile.dnaType === 'Catalyst' },
-    { name: 'Craftsman Precision 💎', desc: 'Awarded to pixel-perfect visual programmers polishing UI overlays.', unlocked: userProfile.secondaryDnaType === 'Craftsman' }
+    { name: 'Night Owl', desc: 'Awarded to developers who submit commits or code ratings between 12:00 AM and 5:00 AM.', unlocked: true },
+    { name: 'Bug Hunter', desc: 'Awarded for deconstructing and reviewing EVM vault circuits or resolving compiler audits.', unlocked: userProfile.level >= 2 },
+    { name: 'Weekend Warrior', desc: 'Awarded for keeping streaks and check-ins active over Saturday & Sunday.', unlocked: streakCount >= 3 },
+    { name: 'Research Enthusiast', desc: 'Awarded for exploring cryptography and zero-knowledge reputation architectures.', unlocked: userProfile.dnaType === 'Scholar' || userProfile.secondaryDnaType === 'Scholar' },
+    { name: 'Catalyst Glue', desc: 'Awarded for active mentorship and coordinating multiple clan collaborations.', unlocked: userProfile.dnaType === 'Catalyst' },
+    { name: 'Craftsman Precision', desc: 'Awarded to pixel-perfect visual programmers polishing UI overlays.', unlocked: userProfile.secondaryDnaType === 'Craftsman' }
   ];
 
   const handleCompleteSubtask = (taskId, xpReward) => {

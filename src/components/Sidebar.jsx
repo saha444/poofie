@@ -88,25 +88,25 @@ export default function Sidebar() {
         {userProfile.dnaType && (
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             <span className="badge-tag badge-human" style={{ background: 'rgba(0, 242, 254, 0.08)', color: 'var(--accent-cyan)', border: '1px solid rgba(0, 242, 254, 0.2)' }}>
-              {userProfile.dnaType === 'Maker' && 'Maker ⚒️'}
-              {userProfile.dnaType === 'Architect' && 'Architect 🏛️'}
-              {userProfile.dnaType === 'Explorer' && 'Explorer 🧭'}
-              {userProfile.dnaType === 'Strategist' && 'Strategist ♟️'}
-              {userProfile.dnaType === 'Scholar' && 'Scholar 📚'}
-              {userProfile.dnaType === 'Alchemist' && 'Alchemist ⚗️'}
-              {userProfile.dnaType === 'Catalyst' && 'Catalyst ⚡'}
-              {userProfile.dnaType === 'Craftsman' && 'Craftsman 💎'}
+              {userProfile.dnaType === 'Maker' && 'Maker'}
+              {userProfile.dnaType === 'Architect' && 'Architect'}
+              {userProfile.dnaType === 'Explorer' && 'Explorer'}
+              {userProfile.dnaType === 'Strategist' && 'Strategist'}
+              {userProfile.dnaType === 'Scholar' && 'Scholar'}
+              {userProfile.dnaType === 'Alchemist' && 'Alchemist'}
+              {userProfile.dnaType === 'Catalyst' && 'Catalyst'}
+              {userProfile.dnaType === 'Craftsman' && 'Craftsman'}
             </span>
             {userProfile.secondaryDnaType && (
               <span className="badge-tag" style={{ background: 'rgba(155, 81, 224, 0.08)', color: 'var(--accent-purple)', border: '1px solid rgba(155, 81, 224, 0.2)' }}>
-                {userProfile.secondaryDnaType === 'Maker' && 'Maker ⚒️'}
-                {userProfile.secondaryDnaType === 'Architect' && 'Architect 🏛️'}
-                {userProfile.secondaryDnaType === 'Explorer' && 'Explorer 🧭'}
-                {userProfile.secondaryDnaType === 'Strategist' && 'Strategist ♟️'}
-                {userProfile.secondaryDnaType === 'Scholar' && 'Scholar 📚'}
-                {userProfile.secondaryDnaType === 'Alchemist' && 'Alchemist ⚗️'}
-                {userProfile.secondaryDnaType === 'Catalyst' && 'Catalyst ⚡'}
-                {userProfile.secondaryDnaType === 'Craftsman' && 'Craftsman 💎'}
+                {userProfile.secondaryDnaType === 'Maker' && 'Maker'}
+                {userProfile.secondaryDnaType === 'Architect' && 'Architect'}
+                {userProfile.secondaryDnaType === 'Explorer' && 'Explorer'}
+                {userProfile.secondaryDnaType === 'Strategist' && 'Strategist'}
+                {userProfile.secondaryDnaType === 'Scholar' && 'Scholar'}
+                {userProfile.secondaryDnaType === 'Alchemist' && 'Alchemist'}
+                {userProfile.secondaryDnaType === 'Catalyst' && 'Catalyst'}
+                {userProfile.secondaryDnaType === 'Craftsman' && 'Craftsman'}
               </span>
             )}
           </div>
@@ -262,9 +262,6 @@ export default function Sidebar() {
                 }}
               >
                 <span>
-                  {dev.dnaType === 'Architect' && '🏛️'}
-                  {dev.dnaType === 'Maker' && '⚒️'}
-                  {dev.dnaType === 'Explorer' && '🧭'}
                 </span>
                 <div style={{ textAlign: 'left', flex: 1 }}>
                   <span style={{ fontWeight: 700, display: 'block', color: 'var(--text-main)' }}>{dev.name}</span>

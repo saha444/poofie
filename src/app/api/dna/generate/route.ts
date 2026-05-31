@@ -215,15 +215,15 @@ export async function POST(req: NextRequest) {
   const domainsHighlight: string[] = []
   const techStack = profile?.techStack || []
   
-  if (techStack.some(t => ['Solidity', 'Go', 'Rust'].includes(t))) domainsHighlight.push('Web3 & Smart Contracts ⛓️')
-  if (techStack.some(t => ['Python', 'C++'].includes(t))) domainsHighlight.push('Artificial Intelligence 🧠')
-  if (techStack.some(t => ['TypeScript', 'React', 'NextJS', 'JavaScript'].includes(t))) domainsHighlight.push('Web Architecture 💻')
-  if (techStack.some(t => ['C', 'Rust', 'Assembly'].includes(t))) domainsHighlight.push('Systems & Low-level 🔌')
-  if (ltSolved > 50) domainsHighlight.push('Competitive Programming ♟️')
-  if (dfHacks > 2) domainsHighlight.push('Hackathons & Prototyping 🚀')
+  if (techStack.some(t => ['Solidity', 'Go', 'Rust'].includes(t))) domainsHighlight.push('Web3 & Smart Contracts')
+  if (techStack.some(t => ['Python', 'C++'].includes(t))) domainsHighlight.push('Artificial Intelligence')
+  if (techStack.some(t => ['TypeScript', 'React', 'NextJS', 'JavaScript'].includes(t))) domainsHighlight.push('Web Architecture')
+  if (techStack.some(t => ['C', 'Rust', 'Assembly'].includes(t))) domainsHighlight.push('Systems & Low-level')
+  if (ltSolved > 50) domainsHighlight.push('Competitive Programming')
+  if (dfHacks > 2) domainsHighlight.push('Hackathons & Prototyping')
 
   if (domainsHighlight.length === 0) {
-    domainsHighlight.push('Software Engineering 💻')
+    domainsHighlight.push('Software Engineering')
   }
 
   // Update profile record with calculated radar values and derived domains

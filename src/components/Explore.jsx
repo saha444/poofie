@@ -89,7 +89,7 @@ export default function Explore() {
     addXP(100, `Initiated collaboration with @${devUsername}`);
     addNotification(
       'success',
-      `📩 Collaboration request sent! Transmitted your Developer DNA Card (Maker ⚒️ / Explorer 🧭) to @${devUsername}.`
+      `Collaboration request sent! Transmitted your Developer DNA Card (Maker / Explorer) to @${devUsername}.`
     );
   };
 
@@ -185,10 +185,10 @@ export default function Explore() {
                 {/* Archetype badging */}
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                   <span className="badge-tag" style={{ background: 'rgba(0, 242, 254, 0.05)', color: 'var(--accent-cyan)', fontSize: '0.65rem', padding: '2px 8px' }}>
-                    {dev.dnaType === 'Architect' && 'Architect 🏛️'}
-                    {dev.dnaType === 'Maker' && 'Maker ⚒️'}
-                    {dev.dnaType === 'Explorer' && 'Explorer 🧭'}
-                    {dev.dnaType === 'Scholar' && 'Scholar 📚'}
+                    {dev.dnaType === 'Architect' && 'Architect'}
+                    {dev.dnaType === 'Maker' && 'Maker'}
+                    {dev.dnaType === 'Explorer' && 'Explorer'}
+                    {dev.dnaType === 'Scholar' && 'Scholar'}
                   </span>
                   <span className="badge-tag" style={{ background: 'rgba(155, 81, 224, 0.05)', color: 'var(--accent-purple)', fontSize: '0.65rem', padding: '2px 8px' }}>
                     {dev.specialization}

@@ -114,11 +114,11 @@ export default function Profile() {
 
               {/* Specialization / Clan details */}
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <span>💼 {profileUser.specialization || 'Developer'}</span>
+                <span>Specialization: {profileUser.specialization || 'Developer'}</span>
                 <span>•</span>
-                <span>🛡️ Member of {profileUser.clan || 'None'} Clan</span>
+                <span>Member of {profileUser.clan || 'None'} Clan</span>
                 <span>•</span>
-                <span>🏅 Level {profileUser.level || 1} Developer</span>
+                <span>Level {profileUser.level || 1} Developer</span>
               </div>
             </div>
           </div>
@@ -176,14 +176,14 @@ export default function Profile() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 24px' }}>
               {[
-                { name: 'Builder / Maker ⚒️', value: profileUser.traitScores?.Builder || 80, color: 'var(--accent-cyan)' },
-                { name: 'Explorer 🧭', value: profileUser.traitScores?.Explorer || 70, color: 'var(--accent-cyan)' },
-                { name: 'Architect 🏛️', value: profileUser.traitScores?.Architect || 40, color: 'var(--accent-purple)' },
-                { name: 'Scholar 📚', value: profileUser.traitScores?.Scholar || 45, color: 'var(--accent-purple)' },
-                { name: 'Strategist ♟️', value: profileUser.traitScores?.Strategist || 50, color: 'var(--accent-cyan)' },
-                { name: 'Alchemist ⚗️', value: profileUser.traitScores?.Alchemist || 55, color: 'var(--accent-purple)' },
-                { name: 'Catalyst ⚡', value: profileUser.traitScores?.Catalyst || 30, color: 'var(--accent-cyan)' },
-                { name: 'Craftsman 💎', value: profileUser.traitScores?.Craftsman || 60, color: 'var(--accent-purple)' }
+                { name: 'Builder / Maker', value: profileUser.traitScores?.Builder || 80, color: 'var(--accent-cyan)' },
+                { name: 'Explorer', value: profileUser.traitScores?.Explorer || 70, color: 'var(--accent-cyan)' },
+                { name: 'Architect', value: profileUser.traitScores?.Architect || 40, color: 'var(--accent-purple)' },
+                { name: 'Scholar', value: profileUser.traitScores?.Scholar || 45, color: 'var(--accent-purple)' },
+                { name: 'Strategist', value: profileUser.traitScores?.Strategist || 50, color: 'var(--accent-cyan)' },
+                { name: 'Alchemist', value: profileUser.traitScores?.Alchemist || 55, color: 'var(--accent-purple)' },
+                { name: 'Catalyst', value: profileUser.traitScores?.Catalyst || 30, color: 'var(--accent-cyan)' },
+                { name: 'Craftsman', value: profileUser.traitScores?.Craftsman || 60, color: 'var(--accent-purple)' }
               ].map(trait => (
                 <div key={trait.name} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <div style={{ display: 'flex', justifyContent: 'between', fontSize: '0.75rem', fontWeight: 600 }}>

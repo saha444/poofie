@@ -184,11 +184,11 @@ export default function LandingAndAuth() {
   const [selectedClan, setSelectedClan] = useState('');
 
   const AVAILABLE_DOMAINS = [
-    { id: 'AI', name: 'Artificial Intelligence 🧠', desc: 'Machine learning, agents, LLMs, neural nets' },
-    { id: 'WebDev', name: 'Web Development 💻', desc: 'Frontend guilds, scalable backends, fullstack systems' },
-    { id: 'Security', name: 'Cybersecurity 🛡️', desc: 'Penetration testing, EVM auditing, zero-knowledge' },
-    { id: 'OS', name: 'Open Source 🔓', desc: 'Public repositories, tooling, developer productivity' },
-    { id: 'Competitive', name: 'Competitive Programming ♟️', desc: 'Algorithms, LeetCode, fast problem solving' }
+    { id: 'AI', name: 'Artificial Intelligence', desc: 'Machine learning, agents, LLMs, neural nets' },
+    { id: 'WebDev', name: 'Web Development', desc: 'Frontend guilds, scalable backends, fullstack systems' },
+    { id: 'Security', name: 'Cybersecurity', desc: 'Penetration testing, EVM auditing, zero-knowledge' },
+    { id: 'OS', name: 'Open Source', desc: 'Public repositories, tooling, developer productivity' },
+    { id: 'Competitive', name: 'Competitive Programming', desc: 'Algorithms, LeetCode, fast problem solving' }
   ];
 
   // OTP handlers
@@ -265,7 +265,7 @@ export default function LandingAndAuth() {
   };
 
   const DNA_EMOJIS = {
-    Maker: '⚒️', Architect: '🏛️', Explorer: '🧭', Scholar: '📚', Craftsman: '💎', Catalyst: '⚡'
+    Maker: '', Architect: '', Explorer: '', Scholar: '', Craftsman: '', Catalyst: ''
   };
 
   // Connect platform prompt
@@ -786,8 +786,8 @@ export default function LandingAndAuth() {
         {/* --- STEP 5: DNA TROPHY REVEAL --- */}
         {onboardStep === 'dna_reveal' && (() => {
           const result = getDNAResult();
-          const primaryEmoji = DNA_EMOJIS[result.primary] || '🧬';
-          const secondaryEmoji = DNA_EMOJIS[result.secondary] || '🔬';
+          const primaryEmoji = '';
+          const secondaryEmoji = '';
           const description = DNA_DESCRIPTIONS[result.primary] || '';
           const maxScore = Math.max(...Object.values(result.scores));
           return (

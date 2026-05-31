@@ -192,7 +192,7 @@ export default function Feed() {
                 <label style={{ fontSize: '0.7rem', color: 'var(--text-dim)', display: 'block', marginBottom: '6px' }}>LISTING TITLE</label>
                 <input 
                   type="text" 
-                  placeholder="e.g. Looking for Backend Dev for AI Agents 🚀" 
+                  placeholder="e.g. Looking for Backend Dev for AI Agents" 
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   className="input-field"

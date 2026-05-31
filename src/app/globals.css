@@ -3,48 +3,27 @@
 
 /* Style Design Tokens & Variables */
 :root {
-  --bg-deep: #000000;
-  --bg-surface: rgba(10, 10, 10, 0.85);
-  --bg-card: rgba(20, 20, 20, 0.95);
-  --bg-hover: rgba(30, 30, 30, 0.95);
-  --accent-cyan: #ffffff;
-  --accent-purple: #ffffff;
-  --accent-gradient: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
-  --accent-gradient-hover: linear-gradient(135deg, #ffffff 0%, #71717a 100%);
+  --bg-deep: #0e0e0e;
+  --bg-surface: #141414;
+  --bg-card: #141414;
+  --bg-hover: #1c1c1c;
+  --accent-cyan: #f0f0f0;
+  --accent-purple: #d4d4d4;
+  --accent-gradient: linear-gradient(135deg, #f0f0f0 0%, #c8c8c8 100%);
+  --accent-gradient-hover: linear-gradient(135deg, #d4d4d4 0%, #a0a0a0 100%);
   
-  --text-main: #ffffff;
-  --text-muted: #a1a1aa;
-  --text-dim: #71717a;
+  --text-main: #f0f0f0;
+  --text-muted: #c8c8c8;
+  --text-dim: #888888;
   
-  --border-glow: rgba(255, 255, 255, 0.08);
-  --border-light: rgba(255, 255, 255, 0.06);
-  --shadow-glow: 0 8px 32px rgba(0, 0, 0, 0.8);
-  --shadow-purple-glow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  --border-glow: #2e2e2e;
+  --border-light: #2e2e2e;
+  --shadow-glow: none;
+  --shadow-purple-glow: none;
   
   --font-heading: 'Outfit', sans-serif;
   --font-body: 'Inter', sans-serif;
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Light Theme Variables (Strictly Monochrome) */
-html:not(.dark) {
-  --bg-deep: #ffffff;
-  --bg-surface: rgba(255, 255, 255, 0.9);
-  --bg-card: #f4f4f5;
-  --bg-hover: #e4e4e7;
-  --accent-cyan: #09090b;
-  --accent-purple: #09090b;
-  --accent-gradient: linear-gradient(135deg, #09090b 0%, #71717a 100%);
-  --accent-gradient-hover: linear-gradient(135deg, #09090b 0%, #3f3f46 100%);
-  
-  --text-main: #09090b;
-  --text-muted: #3f3f46;
-  --text-dim: #71717a;
-  
-  --border-glow: rgba(9, 9, 11, 0.08);
-  --border-light: rgba(9, 9, 11, 0.06);
-  --shadow-glow: 0 10px 30px rgba(0, 0, 0, 0.04);
-  --shadow-purple-glow: 0 10px 30px rgba(0, 0, 0, 0.04);
 }
 
 /* Base Styles */
@@ -55,34 +34,12 @@ html:not(.dark) {
 }
 
 body {
-  background-color: var(--bg-deep);
-  color: var(--text-main);
+  background-color: #0e0e0e !important;
+  background: #0e0e0e !important;
+  color: #f0f0f0 !important;
   font-family: var(--font-body);
   overflow-x: hidden;
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.015) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.01) 0%, transparent 40%);
-  background-attachment: fixed;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Light theme specific body gradient overrides (Monochrome) */
-html:not(.dark) body {
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(9, 9, 11, 0.01) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(9, 9, 11, 0.01) 0%, transparent 40%) !important;
-}
-
-/* Light theme input-fields glassmorphism overrides (Monochrome) */
-html:not(.dark) .input-field {
-  background: #ffffff !important;
-  border-color: rgba(9, 9, 11, 0.12) !important;
-  color: #09090b !important;
-}
-
-html:not(.dark) .input-field:focus {
-  border-color: #09090b !important;
-  box-shadow: 0 0 10px rgba(9, 9, 11, 0.05) !important;
+  background-image: none !important;
 }
 
 /* Light theme landing active body overrides */
@@ -828,93 +785,31 @@ body.landing-active main {
 }
 
 /* ==========================================
-   OTHER PAGES AESTHETICS (HIGH-CONTRAST B&W)
+   OTHER PAGES AESTHETICS (SOFT DARK MONO)
    ========================================== */
 body:not(.landing-active) {
-  background-color: #000000 !important;
-  background-image: none !important;
-  color: #ffffff !important;
+  background-color: #0e0e0e !important;
+  background: #0e0e0e !important;
+  color: #f0f0f0 !important;
   
-  /* Reset design tokens to pure black & white */
-  --bg-deep: #000000;
-  --bg-surface: #000000;
-  --bg-card: #000000;
-  --bg-hover: #18181b;
-  --text-main: #ffffff;
-  --text-muted: #e4e4e7;
-  --text-dim: #a1a1aa;
-  --border-light: rgba(255, 255, 255, 0.2);
-  --border-glow: rgba(255, 255, 255, 0.25);
+  /* Soft dark monochrome tokens */
+  --bg-deep: #0e0e0e;
+  --bg-surface: #141414;
+  --bg-card: #141414;
+  --bg-hover: #1c1c1c;
+  --text-main: #f0f0f0;
+  --text-muted: #c8c8c8;
+  --text-dim: #888888;
+  --border-light: #2e2e2e;
+  --border-glow: #2e2e2e;
   --shadow-glow: none;
   --shadow-purple-glow: none;
+  
+  --font-heading: monospace;
+  --font-body: monospace;
 }
 
-/* Boxes/Containers covered with a thin white rounded border and solid black background */
-body:not(.landing-active) .glass-panel,
-body:not(.landing-active) .glass-panel:hover {
-  background: #000000 !important;
-  background-color: #000000 !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  border-radius: 12px !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-/* Primary buttons should be solid white with black text */
-body:not(.landing-active) .btn-primary {
-  background: #ffffff !important;
-  background-color: #ffffff !important;
-  color: #000000 !important;
-  font-family: var(--font-heading) !important;
-  font-weight: 700 !important;
-  border: 1px solid #ffffff !important;
-  border-radius: 8px !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-
-body:not(.landing-active) .btn-primary:hover {
-  background: #e4e4e7 !important;
-  background-color: #e4e4e7 !important;
-  border-color: #e4e4e7 !important;
-  color: #000000 !important;
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-/* Secondary buttons should be black background with thin white border and white text */
-body:not(.landing-active) .btn-secondary {
-  background: #000000 !important;
-  background-color: #000000 !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  border-radius: 8px !important;
-  box-shadow: none !important;
-}
-
-body:not(.landing-active) .btn-secondary:hover {
-  background: #18181b !important;
-  background-color: #18181b !important;
-  border-color: rgba(255, 255, 255, 0.5) !important;
-  color: #ffffff !important;
-}
-
-/* Standard Inputs & Text Fields overrides */
-body:not(.landing-active) .input-field {
-  background: #000000 !important;
-  background-color: #000000 !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  color: #ffffff !important;
-  border-radius: 8px !important;
-}
-
-body:not(.landing-active) .input-field:focus {
-  border-color: #ffffff !important;
-  box-shadow: none !important;
-}
-
-/* Force all text fields and labels in dashboard subpages to pure white */
+/* Force monospace font family across all subpage elements */
 body:not(.landing-active) h1,
 body:not(.landing-active) h2,
 body:not(.landing-active) h3,
@@ -923,17 +818,186 @@ body:not(.landing-active) h5,
 body:not(.landing-active) h6,
 body:not(.landing-active) p,
 body:not(.landing-active) span,
-body:not(.landing-active) li,
+body:not(.landing-active) a,
+body:not(.landing-active) button,
 body:not(.landing-active) label,
-body:not(.landing-active) div:not(.badge-tag):not(.toggle-container):not(.toggle-handle-wrapper):not(.toggle-handle):not(.toggle-handle-knob):not(.toggle-handle-bar-wrapper):not(.toggle-handle-bar):not(.toggle-base):not(.toggle-base-inside) {
-  color: #ffffff !important;
+body:not(.landing-active) input,
+body:not(.landing-active) textarea,
+body:not(.landing-active) select,
+body:not(.landing-active) div {
+  font-family: monospace !important;
 }
 
-/* Reset badge border lines to clean thin monochrome borders */
+/* Force Monospace, UPPERCASE, and Letter-Spacing for signature heading, button and box elements */
+body:not(.landing-active) h1,
+body:not(.landing-active) h2,
+body:not(.landing-active) h3,
+body:not(.landing-active) h4,
+body:not(.landing-active) h5,
+body:not(.landing-active) h6,
+body:not(.landing-active) button,
+body:not(.landing-active) .btn-primary,
+body:not(.landing-active) .btn-secondary,
+body:not(.landing-active) label,
+body:not(.landing-active) .badge-tag {
+  font-family: monospace !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.15em !important;
+}
+
+/* Page/Viewport overrides */
+body:not(.landing-active) .app-container,
+body:not(.landing-active) main,
+body:not(.landing-active) nav {
+  background: #0e0e0e !important;
+  background-color: #0e0e0e !important;
+}
+
+/* Boxes/Containers — dark panel with subtle border */
+body:not(.landing-active) .glass-panel,
+body:not(.landing-active) .glass-panel:hover,
+body:not(.landing-active) [class*="card"],
+body:not(.landing-active) .integration-card,
+body:not(.landing-active) div[style*="background-color: rgba(255, 255, 255, 0.02)"],
+body:not(.landing-active) div[style*="background: rgba(255, 255, 255, 0.02)"] {
+  background: #141414 !important;
+  background-color: #141414 !important;
+  border: 1px solid #2e2e2e !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Subtle borders inside panels */
+body:not(.landing-active) .glass-panel * {
+  border-color: #2e2e2e !important;
+}
+
+/* Buttons — light fill on dark bg, low-contrast */
+body:not(.landing-active) button,
+body:not(.landing-active) .btn-primary,
+body:not(.landing-active) .btn-secondary,
+body:not(.landing-active) button[class*="btn"],
+body:not(.landing-active) a[class*="btn"] {
+  background: #efefef !important;
+  background-color: #efefef !important;
+  color: #111111 !important;
+  font-family: var(--font-heading) !important;
+  font-weight: 700 !important;
+  border: 1px solid #efefef !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  transform: none !important;
+  opacity: 1 !important;
+}
+
+body:not(.landing-active) button:hover,
+body:not(.landing-active) .btn-primary:hover,
+body:not(.landing-active) .btn-secondary:hover,
+body:not(.landing-active) button[class*="btn"]:hover,
+body:not(.landing-active) a[class*="btn"]:hover {
+  background: #d8d8d8 !important;
+  background-color: #d8d8d8 !important;
+  border-color: #d8d8d8 !important;
+  color: #111111 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+body:not(.landing-active) button:disabled,
+body:not(.landing-active) .btn-primary:disabled,
+body:not(.landing-active) .btn-secondary:disabled {
+  background: #2a2a2a !important;
+  background-color: #2a2a2a !important;
+  color: #555555 !important;
+  border-color: #2a2a2a !important;
+  cursor: not-allowed !important;
+  opacity: 1 !important;
+}
+
+/* Unselected tag options — dark bg, muted border */
+body:not(.landing-active) .tag-option-unselected,
+body:not(.landing-active) button.tag-option-unselected {
+  background: #141414 !important;
+  background-color: #141414 !important;
+  color: #c8c8c8 !important;
+  border: 1px solid #3a3a3a !important;
+}
+
+body:not(.landing-active) .tag-option-unselected:hover,
+body:not(.landing-active) button.tag-option-unselected:hover {
+  background: #efefef !important;
+  background-color: #efefef !important;
+  color: #111111 !important;
+  border-color: #efefef !important;
+}
+
+/* Standard Inputs & Text Fields */
+body:not(.landing-active) .input-field,
+body:not(.landing-active) input[type="text"],
+body:not(.landing-active) input[type="url"],
+body:not(.landing-active) textarea {
+  background: #0e0e0e !important;
+  background-color: #0e0e0e !important;
+  border: 1px solid #2e2e2e !important;
+  color: #f0f0f0 !important;
+  border-radius: 8px !important;
+}
+
+body:not(.landing-active) .input-field:focus,
+body:not(.landing-active) input[type="text"]:focus,
+body:not(.landing-active) input[type="url"]:focus,
+body:not(.landing-active) textarea:focus {
+  border-color: #888888 !important;
+  box-shadow: none !important;
+}
+
+/* Text colors — soft off-white hierarchy */
+body:not(.landing-active) h1,
+body:not(.landing-active) h2,
+body:not(.landing-active) h3,
+body:not(.landing-active) h4,
+body:not(.landing-active) h5,
+body:not(.landing-active) h6 {
+  color: #f0f0f0 !important;
+}
+
+body:not(.landing-active) p,
+body:not(.landing-active) span,
+body:not(.landing-active) li,
+body:not(.landing-active) label,
+body:not(.landing-active) a:not([class*="btn"]),
+body:not(.landing-active) div:not(.badge-tag):not(.toggle-container):not(.toggle-handle-wrapper):not(.toggle-handle):not(.toggle-handle-knob):not(.toggle-handle-bar-wrapper):not(.toggle-handle-bar):not(.toggle-base):not(.toggle-base-inside) {
+  color: #c8c8c8 !important;
+}
+
+/* Badge — subtle border, muted text */
 body:not(.landing-active) .badge-tag {
   border-radius: 6px !important;
   box-shadow: none !important;
+  border: 1px solid #3a3a3a !important;
+  background: #141414 !important;
+  color: #c8c8c8 !important;
 }
+
+/* Active sidebar tab and general grey/light background text overrides */
+body:not(.landing-active) .active-tab {
+  background: #efefef !important;
+  color: #111111 !important;
+}
+
+body:not(.landing-active) [style*="background: #efefef"],
+body:not(.landing-active) [style*="background-color: #efefef"],
+body:not(.landing-active) [style*="background: rgb(239, 239, 239)"],
+body:not(.landing-active) [style*="background-color: rgb(239, 239, 239)"],
+body:not(.landing-active) [style*="background: #e4e4e7"],
+body:not(.landing-active) [style*="background-color: #e4e4e7"],
+body:not(.landing-active) [style*="background: rgb(228, 228, 231)"],
+body:not(.landing-active) [style*="background-color: rgb(228, 228, 231)"] {
+  color: #111111 !important;
+}
+
 
 
 

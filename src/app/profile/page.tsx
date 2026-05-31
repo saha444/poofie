@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { 
-  Sparkles, 
+  Sparkles,
   GitFork, 
   Briefcase, 
   Award, 
@@ -163,38 +163,55 @@ export default function ProfilePage() {
         {/* Row 1: Header Attestation Banner */}
         <section className="glass-panel" style={{ padding: '36px', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', right: '-10%', top: '-20%', width: '300px', height: '300px', background: `${primaryColor}12`, filter: 'blur(90px)', pointerEvents: 'none' }} />
-          
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '24px' }}>
-            <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
-              {session?.user?.image && (
-                <div style={{ width: '84px', height: '84px', borderRadius: '50%', overflow: 'hidden', border: `3px solid ${primaryColor}`, boxShadow: '0 0 20px rgba(0,242,254,0.15)' }}>
-                  <img src={session.user.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-              )}
-              <div>
-                <h1 style={{ fontSize: '2rem', fontWeight: 800, fontFamily: 'var(--font-heading)' }}>{session?.user?.name}</h1>
-                <div style={{ display: 'flex', gap: '8px', margin: '8px 0', flexWrap: 'wrap' }}>
-                  <span style={{ background: `${primaryColor}16`, color: primaryColor, border: `1px solid ${primaryColor}40`, padding: '4px 12px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 700 }}>
-                    {userDna?.primaryType || 'Maker'} Archetype
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '28px', flexWrap: 'wrap' }}>
+            {/* Avatar */}
+            {session?.user?.image && (
+              <div style={{
+                width: '96px', height: '96px', borderRadius: '50%',
+                overflow: 'hidden', flexShrink: 0,
+                border: `3px solid ${primaryColor}`,
+                boxShadow: `0 0 24px ${primaryColor}30`,
+              }}>
+                <img src={session.user.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            )}
+
+            {/* Name + DNA badges */}
+            <div>
+              <h1 style={{
+                fontSize: '2.2rem', fontWeight: 900,
+                fontFamily: 'var(--font-heading)',
+                color: '#f0f0f0',
+                textTransform: 'uppercase', letterSpacing: '0.06em',
+                lineHeight: 1.1, marginBottom: '12px',
+              }}>
+                {session?.user?.name}
+              </h1>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{
+                  background: `${primaryColor}18`, color: primaryColor,
+                  border: `1px solid ${primaryColor}50`,
+                  padding: '5px 14px', borderRadius: '20px',
+                  fontSize: '0.78rem', fontWeight: 700,
+                  fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '0.08em',
+                }}>
+                  {userDna?.primaryType || 'Maker'} Archetype
+                </span>
+                {userDna?.secondaryType && (
+                  <span style={{
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    color: '#888888',
+                    padding: '5px 14px', borderRadius: '20px',
+                    fontSize: '0.78rem',
+                    fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '0.08em',
+                  }}>
+                    Secondary: {userDna.secondaryType}
                   </span>
-                  <span style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-dim)', padding: '4px 12px', borderRadius: '20px', fontSize: '0.78rem' }}>
-                    Secondary: {userDna?.secondaryType || 'Explorer'}
-                  </span>
-                </div>
-                <p style={{ color: 'var(--text-dim)', fontSize: '0.82rem', marginTop: '6px' }}>
-                  💼 {userProfile?.bio || 'Full Stack Software Engineer'} · Level 8 verified professional
-                </p>
+                )}
               </div>
             </div>
-          </div>
-
-          <div style={{ marginTop: '28px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.04)', padding: '20px', borderRadius: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-cyan)', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
-              <Sparkles size={14} /> AI ATTENTION JUSTIFICATION
-            </div>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.6', fontStyle: 'italic' }}>
-              "{userDna?.explanation || 'You focus on shipping high-momentum products, leveraging extensive GitHub repos and responsive system capabilities.'}"
-            </p>
           </div>
         </section>
 
@@ -383,7 +400,7 @@ export default function ProfilePage() {
 
           </div>
 
-          {/* Right Column: Tech Stack & Domains Showcase */}
+          {/* Right Column: Tech Stack, Domains & Algorithmic Index Showcase */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {/* Tech Stack Preference Bar Chart */}
             <div className="glass-panel" style={{ padding: '24px' }}>
@@ -451,71 +468,8 @@ export default function ProfilePage() {
                 ))}
               </div>
             </div>
-          </div>
 
-        </section>
-
-        {/* Row 3: Professional Work History & Connected Orgs */}
-        <section style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '28px' }}>
-          
-          {/* Work Experience Timeline */}
-          <div className="glass-panel" style={{ padding: '32px' }}>
-            <h2 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Briefcase size={18} style={{ color: 'var(--accent-purple)' }} /> Verified Work History (Filter Enabled)
-            </h2>
-
-            {linkedinExpArray.length === 0 ? (
-              <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-dim)' }}>
-                <span>No work experience details linked. Link LinkedIn during onboarding!</span>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                {linkedinExpArray.map((role, idx) => (
-                  <div key={idx} style={{ display: 'flex', gap: '16px', position: 'relative' }}>
-                    {/* timeline node */}
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--accent-purple)', border: '2px solid #fff' }} />
-                      {idx < linkedinExpArray.length - 1 && (
-                        <div style={{ flex: 1, width: '2px', background: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
-                      )}
-                    </div>
-                    <div style={{ flex: 1, paddingBottom: '12px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                        <div>
-                          <strong style={{ fontSize: '0.88rem', color: '#fff' }}>{role.title}</strong>
-                          <span style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '2px' }}>{role.company}</span>
-                        </div>
-                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{role.period}</span>
-                      </div>
-                      <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', lineHeight: '1.5', marginTop: '6px' }}>{role.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* GitHub Orgs & LeetCode stats */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {/* GitHub Organizations */}
-            <div className="glass-panel" style={{ padding: '24px' }}>
-              <h3 style={{ fontSize: '0.9rem', fontWeight: 800, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Award size={16} style={{ color: 'var(--accent-cyan)' }} /> Verified Communities & Orgs
-              </h3>
-              {userProfile?.githubOrgs && userProfile.githubOrgs.length > 0 ? (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {userProfile.githubOrgs.map((org: string) => (
-                    <span key={org} style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', padding: '4px 10px', borderRadius: '6px', fontWeight: 600 }}>
-                      @{org}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>No public GitHub organization links found.</span>
-              )}
-            </div>
-
-            {/* LeetCode stats */}
+            {/* LeetCode stats / Algorithmic Index */}
             <div className="glass-panel" style={{ padding: '24px' }}>
               <h3 style={{ fontSize: '0.9rem', fontWeight: 800, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <Award size={16} style={{ color: '#10b981' }} /> Algorithmic Index
@@ -541,6 +495,73 @@ export default function ProfilePage() {
             </div>
           </div>
 
+        </section>
+
+        {/* Row 3: Professional Work History, Communities, and Organizations History */}
+        <section className="glass-panel" style={{ padding: '32px' }}>
+          <h2 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Briefcase size={18} style={{ color: 'var(--accent-purple)' }} /> Verified Work / Communities / Orgs History
+          </h2>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px' }}>
+            
+            {/* Left Column: Work Experience Timeline */}
+            <div>
+              <h3 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-purple)' }}>
+                <Briefcase size={16} /> Work Experience
+              </h3>
+
+              {linkedinExpArray.length === 0 ? (
+                <div style={{ padding: '20px 0', color: 'var(--text-dim)' }}>
+                  <span>no experience details linked</span>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {linkedinExpArray.map((role, idx) => (
+                    <div key={idx} style={{ display: 'flex', gap: '16px', position: 'relative' }}>
+                      {/* timeline node */}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--accent-purple)', border: '2px solid #fff' }} />
+                        {idx < linkedinExpArray.length - 1 && (
+                          <div style={{ flex: 1, width: '2px', background: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
+                        )}
+                      </div>
+                      <div style={{ flex: 1, paddingBottom: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                          <div>
+                            <strong style={{ fontSize: '0.88rem', color: '#fff' }}>{role.title}</strong>
+                            <span style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '2px' }}>{role.company}</span>
+                          </div>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{role.period}</span>
+                        </div>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', lineHeight: '1.5', marginTop: '6px' }}>{role.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Right Column: GitHub Organizations / Communities */}
+            <div>
+              <h3 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-cyan)' }}>
+                <Award size={16} /> Communities & Organizations
+              </h3>
+              
+              {userProfile?.githubOrgs && userProfile.githubOrgs.length > 0 ? (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {userProfile.githubOrgs.map((org: string) => (
+                    <span key={org} style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', padding: '4px 10px', borderRadius: '6px', fontWeight: 600 }}>
+                      @{org}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>No public GitHub organization links found.</span>
+              )}
+            </div>
+
+          </div>
         </section>
 
       </main>
