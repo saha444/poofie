@@ -39,18 +39,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'LinkedIn profile URL is required' }, { status: 400 })
   }
 
-  // High-fidelity Mock/Harvested data corresponding to user context if none is provided
-  const inputExperience = experience || [
-    { title: 'Software Engineer Intern', company: 'Google', period: 'May 2025 - Present', desc: 'Working on next-gen UI architecture, optimizing React renders.' },
-    { title: 'Full Stack Developer', company: 'Saha Tech Labs', period: 'Jan 2024 - Apr 2025', desc: 'Built and scaled multiple client-facing full stack React/Node apps.' },
-    { title: 'GDSC Lead / Campus Ambassador', company: 'Google Developer Student Clubs', period: 'Aug 2023 - Jun 2024', desc: 'Organized tech events and hackathons.' }, // Filler role!
-    { title: 'Technical Writer', company: 'Medium Tech Pubs', period: 'Jun 2023 - Present', desc: 'Published 15+ articles on Web3 and systems design.' },
-    { title: 'Core Team Volunteer', company: 'College Coding Club', period: 'Oct 2022 - May 2023', desc: 'Coordinated student hackathons.' } // Filler role!
-  ]
-
-  const inputEducation = education || [
-    { school: 'Indian Institute of Technology', degree: 'Bachelor of Technology in Computer Science', period: '2022 - 2026' }
-  ]
+  // Save only experiences and education provided by the client (no hardcoded mocks)
+  const inputExperience = experience || []
+  const inputEducation = education || []
 
   // Filter out filler roles
   const cleanedExperience = inputExperience.filter((role: any) => {
