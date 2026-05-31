@@ -20,81 +20,9 @@ export async function POST() {
   })
 
   if (!account?.access_token) {
-    console.warn(`No GitHub access token found for user ${userId} in database. Using beautiful resilient mock/fallback telemetry.`)
-    
-    // Recreate User record if it was wiped by database reset!
-    const dbUser = await prisma.user.findUnique({ where: { id: userId } })
-    if (!dbUser) {
-      await prisma.user.create({
-        data: {
-          id: userId,
-          name: session.user?.name || 'Developer',
-          email: session.user?.email || 'developer@poofie.io',
-          image: session.user?.image || null,
-        }
-      })
-    }
-
-    const username = (session.user?.name || 'developer').toLowerCase().replace(/\s+/g, '')
-    const reposCount = 37
-    const starsCount = 142
-    const orgNames = ['saha-labs', 'google-developer-student-clubs', 'open-source-collective']
-    const topLanguages = ['TypeScript', 'JavaScript', 'Go', 'Rust', 'Python', 'HTML', 'CSS']
-    const languageCounts = { TypeScript: 15, JavaScript: 10, Go: 5, Rust: 4, Python: 2, HTML: 1 }
-
-    const profile = await prisma.profile.upsert({
-      where: { userId },
-      create: {
-        userId,
-        username,
-        bio: 'Full Stack Software Engineer & AI Researcher',
-        avatarUrl: session.user?.image || null,
-        githubUsername: username,
-        githubRepos: reposCount,
-        githubStars: starsCount,
-        githubContribs: 254,
-        githubLanguages: languageCounts,
-        techStack: topLanguages,
-        githubOrgs: orgNames,
-        preferredTech: ['TypeScript', 'Go', 'Rust'],
-      },
-      update: {
-        githubUsername: username,
-        githubRepos: reposCount,
-        githubStars: starsCount,
-        githubLanguages: languageCounts,
-        techStack: topLanguages,
-        githubOrgs: orgNames,
-      },
-    })
-
-    const skills = topLanguages.map((lang, i) => ({
-      name: lang,
-      confidenceScore: Math.max(40, 95 - i * 8),
-      sources: ['GitHub'],
-    }))
-
-    await prisma.skill.deleteMany({ where: { profileId: profile.id, sources: { has: 'GitHub' } } })
-    if (skills.length > 0) {
-      await prisma.skill.createMany({
-        data: skills.map(s => ({ ...s, profileId: profile.id })),
-      })
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        username,
-        name: session.user?.name || 'Developer',
-        bio: 'Full Stack Software Engineer & AI Researcher',
-        avatar: session.user?.image || null,
-        repos: reposCount,
-        stars: starsCount,
-        topLanguages,
-        organizations: orgNames,
-        isMock: true,
-      },
-    })
+    return NextResponse.json({ 
+      error: 'GitHub session expired. Please sign out and sign in again to re-authenticate and sync real data.' 
+    }, { status: 401 })
   }
 
   const headers = {
