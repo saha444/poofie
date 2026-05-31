@@ -213,12 +213,12 @@ export async function POST(req: NextRequest) {
 
   // Derive Domain highlights
   const domainsHighlight: string[] = []
-  const techStack = profile?.techStack || []
+  const techStack = (profile?.techStack as string[]) || []
   
-  if (techStack.some(t => ['Solidity', 'Go', 'Rust'].includes(t))) domainsHighlight.push('Web3 & Smart Contracts')
-  if (techStack.some(t => ['Python', 'C++'].includes(t))) domainsHighlight.push('Artificial Intelligence')
-  if (techStack.some(t => ['TypeScript', 'React', 'NextJS', 'JavaScript'].includes(t))) domainsHighlight.push('Web Architecture')
-  if (techStack.some(t => ['C', 'Rust', 'Assembly'].includes(t))) domainsHighlight.push('Systems & Low-level')
+  if (techStack.some((t: string) => ['Solidity', 'Go', 'Rust'].includes(t))) domainsHighlight.push('Web3 & Smart Contracts')
+  if (techStack.some((t: string) => ['Python', 'C++'].includes(t))) domainsHighlight.push('Artificial Intelligence')
+  if (techStack.some((t: string) => ['TypeScript', 'React', 'NextJS', 'JavaScript'].includes(t))) domainsHighlight.push('Web Architecture')
+  if (techStack.some((t: string) => ['C', 'Rust', 'Assembly'].includes(t))) domainsHighlight.push('Systems & Low-level')
   if (ltSolved > 50) domainsHighlight.push('Competitive Programming')
   if (dfHacks > 2) domainsHighlight.push('Hackathons & Prototyping')
 
