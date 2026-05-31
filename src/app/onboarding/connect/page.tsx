@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 
@@ -144,24 +144,44 @@ export default function ConnectAccountsPage() {
         <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: '16px', padding: '48px' }}>
 
           {/* Header */}
-          <div style={{ marginBottom: '36px' }}>
-            <span style={{
-              fontSize: '0.68rem', color: C.dim, fontWeight: 700,
-              textTransform: 'uppercase', letterSpacing: '0.12em',
-              fontFamily: 'var(--font-heading)',
-            }}>
-              Step 1 of 3 — Connect Accounts
-            </span>
-            <h1 style={{
-              fontSize: '1.8rem', fontFamily: 'var(--font-heading)',
-              marginTop: '10px', fontWeight: 800,
-              color: C.text, textTransform: 'uppercase', letterSpacing: '0.05em',
-            }}>
-              Link Developer Profiles
-            </h1>
-            <p style={{ color: C.dim, fontSize: '0.88rem', marginTop: '10px', lineHeight: '1.65', fontFamily: 'var(--font-body)' }}>
-              We fetch real data from these platforms to build your Developer DNA, Work History, and Skill Radar Map.
-            </p>
+          <div style={{ marginBottom: '36px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ flex: 1, paddingRight: '20px' }}>
+              <span style={{
+                fontSize: '0.68rem', color: C.dim, fontWeight: 700,
+                textTransform: 'uppercase', letterSpacing: '0.12em',
+                fontFamily: 'var(--font-heading)',
+              }}>
+                Step 1 of 3 — Connect Accounts
+              </span>
+              <h1 style={{
+                fontSize: '1.8rem', fontFamily: 'var(--font-heading)',
+                marginTop: '10px', fontWeight: 800,
+                color: C.text, textTransform: 'uppercase', letterSpacing: '0.05em',
+              }}>
+                Link Developer Profiles
+              </h1>
+              <p style={{ color: C.dim, fontSize: '0.88rem', marginTop: '10px', lineHeight: '1.65', fontFamily: 'var(--font-body)' }}>
+                We fetch real data from these platforms to build your Developer DNA, Work History, and Skill Radar Map.
+              </p>
+            </div>
+            <button
+              onClick={() => signOut({ callbackUrl: '/' })}
+              style={{
+                padding: '8px 16px',
+                fontSize: '0.72rem',
+                background: C.btnBg,
+                color: C.btnText,
+                border: `1px solid ${C.btnBg}`,
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+              }}
+            >
+              Sign Out
+            </button>
           </div>
 
           {/* Integration Cards */}
